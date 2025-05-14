@@ -2,17 +2,16 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const signupRoutes = require('./routes/signup');
+const signinRoutes = require('./routes/signin');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-
 app.use(cors({
     origin: 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-    allowedHeaders: ['Content-Type', 'Authorization'], 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 
 app.options(/.*/, cors());
 
@@ -34,7 +33,9 @@ app.get('/', (req, res) => {
     res.send('Backend server is running!');
 });
 
+// Use the signup and signin routes
 app.use('/api', signupRoutes);
+app.use('/api', signinRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

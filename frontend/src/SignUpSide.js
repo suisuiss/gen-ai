@@ -174,8 +174,8 @@ export default function SignUp() {
     // When the user clicks OK on the popup, close it and navigate to the login page.
     const handleDialogOk = () => {
         setOpenSuccessDialog(false);
-        window.location.href = "/"; // Update with your actual login page route if needed.
-    };
+        window.location.href = "/"; 
+    }
 
     return (
         <ThemeProvider theme={theme}>
