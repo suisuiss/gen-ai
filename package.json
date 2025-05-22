@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "cors": "^2.8.5"
+    "@mui/icons-material": "^7.1.0",
+    "@mui/material": "^7.1.0",
+    "@mui/system": "^7.1.0",
+    "cors": "^2.8.5",
+    "react-router-dom": "^7.6.0"
   }
 }
