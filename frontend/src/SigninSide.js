@@ -2,54 +2,17 @@ import React, { useState } from "react";
 import {
     Avatar,
     Button,
-    CssBaseline,
     TextField,
-    Link,
-    Paper,
-    Grid,
     Typography,
-    createTheme,
-    ThemeProvider
+    Box,
+    Container,
+    Paper,
+    Link,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import { styled } from "@mui/system";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
-const theme = createTheme();
-
-const Root = styled(Grid)(({ theme }) => ({
-    height: "100vh"
-}));
-
-const Image = styled(Grid)(({ theme }) => ({
-    backgroundImage: "url(https://source.unsplash.com/random)",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "cover",
-    backgroundPosition: "center"
-}));
-
-const PaperWrapper = styled("div")(({ theme }) => ({
-    margin: theme.spacing(8, 4),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center"
-}));
-
-const StyledAvatar = styled(Avatar)(({ theme }) => ({
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main
-}));
-
-const StyledForm = styled("form")(({ theme }) => ({
-    width: "100%",
-    marginTop: theme.spacing(1)
-}));
-
-const SubmitButton = styled(Button)(({ theme }) => ({
-    margin: theme.spacing(3, 0, 2)
-}));
-
-const SignInSide = () => {
+export default function SignInSide() {
     const navigate = useNavigate(); // Initialize navigate
 
     // Controlled fields and error state
@@ -86,21 +49,32 @@ const SignInSide = () => {
             setErrorMessage("An error occurred. Please try again.");
         }
     };
-
     return (
-        <ThemeProvider theme={theme}>
-            <Root container component="main">
-                <CssBaseline />
-                <Image item xs={false} sm={4} md={7} />
-                <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
-                    <PaperWrapper>
-                        <StyledAvatar>
+        <Box
+            sx={{
+                minHeight: "100vh",
+                backgroundColor: "#f5f7f9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+            }}
+        >
+            <Container maxWidth="xs">
+                <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Avatar sx={{ m: 1, bgcolor: "#4a6670" }}>
                             <LockOutlinedIcon />
-                        </StyledAvatar>
-                        <Typography component="h1" variant="h5">
-                            Sign in
+                        </Avatar>
+                        <Typography component="h1" variant="h5" sx={{ fontWeight: "bold" }}>
+                            Sign in to OptiRoom
                         </Typography>
-                        <StyledForm noValidate onSubmit={handleSubmit}>
+                        <Box component="form" noValidate sx={{ mt: 2 }} onSubmit={handleSubmit}>
                             <TextField
                                 margin="normal"
                                 required
@@ -128,28 +102,33 @@ const SignInSide = () => {
                                 error={Boolean(errorMessage)}
                                 helperText={errorMessage}
                             />
-                            <SubmitButton
+                            <Button
                                 type="submit"
                                 fullWidth
                                 variant="contained"
-                                color="primary"
                                 disabled={!email || !password}
+                                sx={{
+                                    mt: 3,
+                                    mb: 2,
+                                    fontWeight: "bold",
+                                    backgroundColor: "#333",
+                                    "&:hover": {
+                                        backgroundColor: "#222",
+                                    },
+                                }}
                             >
                                 Sign In
-                            </SubmitButton>
-                            <Grid container>
-                                <Grid item>
-                                    <Link href="/signup" variant="body2">
-                                        {"Don't have an account? Sign Up"}
-                                    </Link>
-                                </Grid>
-                            </Grid>
-                        </StyledForm>
-                    </PaperWrapper>
-                </Grid>
-            </Root>
-        </ThemeProvider>
+                            </Button>
+                            <Typography variant="body2" align="center">
+                                Don’t have an account?{" "}
+                                <Link href="/signup" underline="hover">
+                                    Sign Up
+                                </Link>
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Paper>
+            </Container>
+        </Box>
     );
-};
-
-export default SignInSide;
+}

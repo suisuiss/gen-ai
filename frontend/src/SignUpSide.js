@@ -1,54 +1,26 @@
-import React, { useState } from "react";
+import React, { useState } from "react"; 
 import {
     Avatar,
     Button,
-    CssBaseline,
     TextField,
-    Grid,
-    Box,
     Typography,
+    Box,
     Container,
+    Paper,
+    Link,
+    IconButton,
+    InputAdornment,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogContentText,
     DialogActions,
-    IconButton,
-    InputAdornment,
-    Link,
-    createTheme,
-    ThemeProvider,
-    styled,
 } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-const theme = createTheme();
-
-const Paper = styled("div")(({ theme }) => ({
-    marginTop: theme.spacing(8),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    width: "100%",
-}));
-
-const StyledAvatar = styled(Avatar)(({ theme }) => ({
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
-}));
-
-const Form = styled("form")(({ theme }) => ({
-    width: "100%",
-    marginTop: theme.spacing(3),
-}));
-
-const SubmitButton = styled(Button)(({ theme }) => ({
-    margin: theme.spacing(3, 0, 2),
-}));
-
-export default function SignUp() {
+export default function SignUpSide() {
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -174,51 +146,74 @@ export default function SignUp() {
     // When the user clicks OK on the popup, close it and navigate to the login page.
     const handleDialogOk = () => {
         setOpenSuccessDialog(false);
-        window.location.href = "/"; 
+        window.location.href = "/";
     }
 
     return (
-        <ThemeProvider theme={theme}>
-            <Container component="main" maxWidth="xs">
-                <CssBaseline />
-                <Paper>
-                    <StyledAvatar>
-                        <LockOutlinedIcon />
-                    </StyledAvatar>
-                    <Typography component="h1" variant="h5">
-                        Sign up
-                    </Typography>
-                    <Form noValidate onSubmit={handleSubmit}>
-                        <Grid container spacing={2}>
-                            <Box sx={{ display: "flex", gap: 2, width: "100%" }}>
-                                <TextField
-                                    autoComplete="given-name"
-                                    name="firstName"
-                                    variant="outlined"
-                                    required
-                                    fullWidth
-                                    id="firstName"
-                                    label="First Name"
-                                    autoFocus
-                                    sx={{ flexGrow: 1 }}
-                                    value={formData.firstName}
-                                    onChange={handleChange}
-                                />
-                                <TextField
-                                    variant="outlined"
-                                    required
-                                    fullWidth
-                                    id="lastName"
-                                    label="Last Name"
-                                    name="lastName"
-                                    autoComplete="family-name"
-                                    sx={{ flexGrow: 1 }}
-                                    value={formData.lastName}
-                                    onChange={handleChange}
-                                />
-                            </Box>
+        <Box
+            sx={{
+                minHeight: "100vh",
+                backgroundColor: "#f5f7f9",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+            }}
+        >
+            <Container maxWidth="xs">
+                <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Avatar sx={{ m: 1, bgcolor: "#4a6670" }}>
+                            <LockOutlinedIcon />
+                        </Avatar>
+                        <Typography component="h1" variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+                            Sign up for OptiRoom
+                        </Typography>
+
+                        {/* FORM STARTS HERE */}
+                        <Box
+                            component="form"
+                            noValidate
+                            onSubmit={handleSubmit}
+                            sx={{
+                                width: "100%",         // Ensure uniform width
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 1.5,              // Vertical spacing between inputs
+                            }}
+                        >
+                            <TextField
+                                autoComplete="given-name"
+                                name="firstName"
+                                variant="outlined"
+                                required
+                                fullWidth
+                                id="firstName"
+                                label="First Name"
+                                autoFocus
+                                sx={{ flexGrow: 1 }}
+                                value={formData.firstName}
+                                onChange={handleChange}
+                            />
                             <TextField
                                 variant="outlined"
+                                required
+                                fullWidth
+                                id="lastName"
+                                label="Last Name"
+                                name="lastName"
+                                autoComplete="family-name"
+                                sx={{ flexGrow: 1 }}
+                                value={formData.lastName}
+                                onChange={handleChange}
+                            />
+                            <TextField
+                                rvariant="outlined"
                                 required
                                 fullWidth
                                 id="email"
@@ -314,27 +309,40 @@ export default function SignUp() {
                                     ),
                                 }}
                             />
-                        </Grid>
-                        <SubmitButton
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            disabled={!isFormValid}
-                        >
-                            Sign Up
-                        </SubmitButton>
-                        <Grid container justifyContent="flex-end">
-                            <Grid item>
-                                <Link href="/" variant="body2">
-                                    Already have an account? Sign in
+
+                            <Button
+                                type="submit"
+                                fullWidth
+                                size="large"
+                                variant="contained"
+                                disabled={!isFormValid}
+                                sx={{
+                                    mt: 1.5,
+                                    fontWeight: "bold",
+                                    backgroundColor: "#333",
+                                    textTransform: "none",
+                                    boxShadow: "none",
+                                    "&:hover": {
+                                        backgroundColor: "#222",
+                                        boxShadow: "none",
+                                    },
+                                }}
+                            >
+                                Sign Up
+                            </Button>
+
+                            <Typography variant="body2" align="center" sx={{ mt: 1 }}>
+                                Already have an account?{" "}
+                                <Link href="/" underline="hover">
+                                    Sign in
                                 </Link>
-                            </Grid>
-                        </Grid>
-                    </Form>
+                            </Typography>
+                        </Box>
+                        {/* FORM ENDS HERE */}
+
+                    </Box>
                 </Paper>
             </Container>
-
-            {/* Success Popup Dialog */}
             <Dialog open={openSuccessDialog} onClose={handleDialogOk}>
                 <DialogTitle>Registration Successful</DialogTitle>
                 <DialogContent>
@@ -348,6 +356,6 @@ export default function SignUp() {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </ThemeProvider>
+        </Box>
     );
 }
