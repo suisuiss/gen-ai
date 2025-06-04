@@ -1,49 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  AppBar, Toolbar, Tabs, Tab, Typography, Box, Button, TextField,
+import {Typography, Box, Button, TextField,
   Paper, Grid, Divider, IconButton, Tooltip
 } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import dayjs from 'dayjs';
-
-const pages = [
-  { label: 'Home', path: '/' },
-  { label: 'Schedule', path: '/schedule' },
-  { label: 'Room Details', path: '/room-details' },
-  { label: 'Floor Plan', path: '/floor-plan' },
-];
-
-const NavigationBar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const currentTab = pages.findIndex(p => p.path === location.pathname);
-
-  const handleTabChange = (event, newValue) => {
-    navigate(pages[newValue].path);
-  };
-
-  return (
-    <AppBar position="static" sx={{ backgroundColor: '#1e3a8a' }}>
-      <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          OptiRoom
-        </Typography>
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          textColor="inherit"
-          indicatorColor="secondary"
-        >
-          {pages.map((page, idx) => (
-            <Tab key={idx} label={page.label} />
-          ))}
-        </Tabs>
-      </Toolbar>
-    </AppBar>
-  );
-};
+import Header from './Header';
 
 const generateCalendarDays = (year, month) => {
   const startDate = dayjs(new Date(year, month, 1));
@@ -109,7 +71,7 @@ const HomePage = () => {
 
   return (
     <>
-      <NavigationBar />
+      <Header/>
       <Grid container sx={{ height: 'calc(100vh - 64px)', width: '100vw', overflow: 'hidden' }}>
         {/* Left Side Calendar */}
         <Grid item xs={3} sx={{ p: 2, backgroundColor: '#f5f5f5', overflowY: 'auto' }}>
