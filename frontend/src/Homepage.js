@@ -1,60 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import {Typography, Box, Button, TextField,
-  Paper, Grid, Divider, IconButton, Tooltip
+// HomePage.js
+import React, { useState } from 'react';
+import {
+  Typography,
+  Box,
+  Button,
+  TextField,
+  Paper
 } from '@mui/material';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import dayjs from 'dayjs';
 import Header from './Header';
 
-const generateCalendarDays = (year, month) => {
-  const startDate = dayjs(new Date(year, month, 1));
-  const endDate = startDate.endOf('month');
-  const days = [];
-  const startDay = startDate.day();
-
-  for (let i = 0; i < startDay; i++) {
-    days.push(null);
-  }
-  for (let d = 1; d <= endDate.date(); d++) {
-    days.push(d);
-  }
-  return days;
-};
-
 const HomePage = () => {
-  const today = dayjs();
-  const [year, setYear] = useState(today.year());
-  const [month, setMonth] = useState(today.month());
+  // Get the current date in a friendly format, e.g. "Wednesday, June 18, 2025"
+  const currentDate = dayjs().format('dddd, MMMM D, YYYY');
+
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [rooms, setRooms] = useState([]);
-  const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm:ss'));
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(dayjs().format('HH:mm:ss'));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handlePrevMonth = () => {
-    if (month === 0) {
-      setYear(year - 1);
-      setMonth(11);
-    } else {
-      setMonth(month - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (month === 11) {
-      setYear(year + 1);
-      setMonth(0);
-    } else {
-      setMonth(month + 1);
-    }
-  };
 
   const handleSearch = () => {
     setLoading(true);
@@ -67,132 +29,128 @@ const HomePage = () => {
     }, 1000);
   };
 
-  const days = generateCalendarDays(year, month);
-
   return (
     <>
-      <Header/>
-      <Grid container sx={{ height: 'calc(100vh - 64px)', width: '100vw', overflow: 'hidden' }}>
-        {/* Left Side Calendar */}
-        <Grid item xs={3} sx={{ p: 2, backgroundColor: '#f5f5f5', overflowY: 'auto' }}>
-          <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, mb: 2, backgroundColor: 'white' }}>
-            <Typography variant="h6">Current Time</Typography>
-            <Typography variant="body1">{currentTime}</Typography>
-          </Box>
-
-          <Box display="flex" justifyContent="center" alignItems="center" mb={2} gap={1}>
-            <Tooltip title="Previous Month">
-              <IconButton
-                onClick={handlePrevMonth}
-                color="primary"
-                size="large"
-                sx={{ bgcolor: '#e0f2fe', '&:hover': { bgcolor: '#bae6fd' } }}
-              >
-                <ArrowBackIosNewIcon />
-              </IconButton>
-            </Tooltip>
-
-            <Typography variant="h5" sx={{ minWidth: 160, textAlign: 'center' }}>
-              {dayjs(new Date(year, month)).format('MMMM YYYY')}
-            </Typography>
-
-            <Tooltip title="Next Month">
-              <IconButton
-                onClick={handleNextMonth}
-                color="primary"
-                size="large"
-                sx={{ bgcolor: '#e0f2fe', '&:hover': { bgcolor: '#bae6fd' } }}
-              >
-                <ArrowForwardIosIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-
-          <Box
-            mt={1}
-            display="grid"
-            gridTemplateColumns="repeat(7, 1fr)"
-            gap={1}
-            sx={{ border: '1px solid #ccc', borderRadius: 2, p: 1, backgroundColor: 'white' }}
+      <Header />
+      <Box
+        sx={{
+          height: 'calc(100vh - 64px)',  // full height minus header
+          width: '100vw',
+          backgroundColor: '#f4f5f7',
+          p: 2,
+          fontFamily: 'Roboto, sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 700,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4
+          }}
+        >
+          {/* Welcome Box */}
+          <Paper
+            sx={{
+              p: 4,
+              borderRadius: 2,
+              boxShadow: 3,
+              textAlign: 'center'
+            }}
           >
-            {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-              <Typography key={idx} align="center" fontWeight="bold">{day}</Typography>
-            ))}
-            {days.map((day, idx) => (
-              <Box
-                key={idx}
-                sx={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: '50%',
-                  backgroundColor:
-                    year === today.year() && month === today.month() && day === today.date()
-                      ? '#90caf9'
-                      : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography>{day || ''}</Typography>
-              </Box>
-            ))}
-          </Box>
-        </Grid>
-
-        {/* Vertical Divider */}
-        <Divider orientation="vertical" flexItem sx={{ mx: 0, borderRight: '3px solid #ccc' }} />
-
-        {/* Main Content */}
-        <Grid item xs={8.9} sx={{ p: 4, backgroundColor: '#dbeafe', overflowY: 'auto' }}>
-          <Typography variant="h4" gutterBottom>Welcome to OptiRoom!</Typography>
-          <Typography variant="body1" gutterBottom>
-            Start booking your room right now!
-          </Typography>
-
-          <Box mt={3} sx={{ backgroundColor: '#f0f8ff', p: 3, borderRadius: 2 }}>
-            <Typography variant="h6">Booking description</Typography>
-            <Typography variant="body2" gutterBottom>
-              Let us know your criteria and we’ll give you room suggestions!
+            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              Welcome to OptiRoom!
             </Typography>
+            <Typography variant="h6" sx={{ color: '#777', mt: 2 }}>
+              {currentDate}
+            </Typography>
+          </Paper>
 
-            <Paper sx={{ p: 2, mt: 1, backgroundColor: '#e0e0e0' }}>
+          {/* Booking Form Box */}
+          <Paper
+            sx={{
+              p: 6,
+              borderRadius: 3,
+              boxShadow: 4,
+              backgroundColor: 'white',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+          >
+            <Typography
+              variant="body1"
+              textAlign="center"
+              gutterBottom
+              sx={{ color: '#555', mb: 2 }}
+            >
+              Start booking your room immediately.
+            </Typography>
+            <Paper
+              sx={{
+                p: 3,
+                backgroundColor: '#f7f7f7',
+                borderRadius: 2,
+                mb: 3,
+                width: '100%'
+              }}
+            >
               <TextField
                 fullWidth
                 multiline
                 minRows={4}
                 variant="standard"
-                placeholder='“Find a room for Monday 3pm, with whiteboard”'
+                placeholder="Find a room for Monday 3pm, with whiteboard"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                sx={{ fontSize: '1.25rem' }}
+                InputProps={{ disableUnderline: true }}
+                sx={{ fontSize: '1.4rem' }}
               />
             </Paper>
-
-            <Box display="flex" justifyContent="center">
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <Button
                 variant="contained"
-                sx={{ mt: 2, backgroundColor: '#a7d6f1', color: 'black' }}
+                sx={{
+                  backgroundColor: '#336699',
+                  color: '#ffffff',
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  textTransform: 'uppercase'
+                }}
                 onClick={handleSearch}
                 disabled={loading}
               >
-                {loading ? 'Searching...' : 'FIND ROOM SUGGESTIONS'}
+                {loading ? 'Processing...' : 'FIND ROOM SUGGESTIONS'}
               </Button>
             </Box>
-          </Box>
-
-          {rooms.length > 0 && (
-            <Box mt={4}>
-              <Typography variant="h6">Suggestions</Typography>
-              <ul>
-                {rooms.map((room, i) => (
-                  <li key={i}>{room.name} - {room.capacity} people</li>
-                ))}
-              </ul>
-            </Box>
-          )}
-        </Grid>
-      </Grid>
+            {rooms.length > 0 && (
+              <Box mt={4} sx={{ width: '100%' }}>
+                <Typography variant="h6" textAlign="center">
+                  Suggestions
+                </Typography>
+                <ul
+                  style={{
+                    listStylePosition: 'inside',
+                    padding: 0,
+                    fontSize: '1.1rem'
+                  }}
+                >
+                  {rooms.map((room, i) => (
+                    <li key={i}>
+                      {room.name} - {room.capacity} people
+                    </li>
+                  ))}
+                </ul>
+              </Box>
+            )}
+          </Paper>
+        </Box>
+      </Box>
     </>
   );
 };
