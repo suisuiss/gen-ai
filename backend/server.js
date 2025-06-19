@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const signupRoutes = require('./routes/signup');
 const signinRoutes = require('./routes/signin');
+const llmRoutes = require('./routes/llm');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -36,6 +38,9 @@ app.get('/', (req, res) => {
 // Use the signup and signin routes
 app.use('/api', signupRoutes);
 app.use('/api', signinRoutes);
+
+// Use the LLM routes
+app.use('/api/llm', llmRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
