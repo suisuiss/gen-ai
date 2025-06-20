@@ -7,6 +7,42 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import dayjs from 'dayjs';
 import Header from './Header';
 
+const pages = [
+  { label: 'Home', path: '/' },
+  { label: 'Schedule', path: '/schedule' },
+  { label: 'Room Details', path: '/room-details' },
+  { label: 'Floor Plan', path: '/floor-plan' },
+];
+
+const NavigationBar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentTab = pages.findIndex(p => p.path === location.pathname);
+
+  const handleTabChange = (event, newValue) => {
+    navigate(pages[newValue].path);
+  };
+  return (
+    <AppBar position="static" sx={{ backgroundColor: '#1e3a8a' }}>
+      <Toolbar>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          OptiRoom
+        </Typography>
+        <Tabs
+          value={currentTab}
+          onChange={handleTabChange}
+          textColor="inherit"
+          indicatorColor="secondary"
+        >
+          {pages.map((page, idx) => (
+            <Tab key={idx} label={page.label} />
+          ))}
+        </Tabs>
+      </Toolbar>
+    </AppBar>
+  );
+};
+
 const generateCalendarDays = (year, month) => {
   const startDate = dayjs(new Date(year, month, 1));
   const endDate = startDate.endOf('month');
@@ -28,7 +64,7 @@ const HomePage = () => {
   const [month, setMonth] = useState(today.month());
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [rooms, setRooms] = useState([]);
+  const [parsedResult, setParsedResult] = useState(null);
   const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm:ss'));
 
   useEffect(() => {
@@ -46,7 +82,6 @@ const HomePage = () => {
       setMonth(month - 1);
     }
   };
-
   const handleNextMonth = () => {
     if (month === 11) {
       setYear(year + 1);
@@ -55,31 +90,40 @@ const HomePage = () => {
       setMonth(month + 1);
     }
   };
-
-  const handleSearch = () => {
+  const handleSearch = async () => {
+    console.log("Submitting query:", query);
     setLoading(true);
-    setTimeout(() => {
-      setRooms([
-        { name: 'Room A', capacity: 10 },
-        { name: 'Room B', capacity: 5 },
-      ]);
+    try {
+      const res = await fetch("/api/llm/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        console.log("Parsed LLM response:", data.parsed);
+        let raw = data.parsed.trim();
+        raw = raw.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+        const info = JSON.parse(raw);
+        setParsedResult(info);
+      }
+    } catch (error) {
+      console.error("Failed to fetch:", error);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
-
   const days = generateCalendarDays(year, month);
 
   return (
     <>
       <Header/>
       <Grid container sx={{ height: 'calc(100vh - 64px)', width: '100vw', overflow: 'hidden' }}>
-        {/* Left Side Calendar */}
         <Grid item xs={3} sx={{ p: 2, backgroundColor: '#f5f5f5', overflowY: 'auto' }}>
           <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, mb: 2, backgroundColor: 'white' }}>
             <Typography variant="h6">Current Time</Typography>
             <Typography variant="body1">{currentTime}</Typography>
           </Box>
-
           <Box display="flex" justifyContent="center" alignItems="center" mb={2} gap={1}>
             <Tooltip title="Previous Month">
               <IconButton
@@ -91,11 +135,9 @@ const HomePage = () => {
                 <ArrowBackIosNewIcon />
               </IconButton>
             </Tooltip>
-
             <Typography variant="h5" sx={{ minWidth: 160, textAlign: 'center' }}>
               {dayjs(new Date(year, month)).format('MMMM YYYY')}
             </Typography>
-
             <Tooltip title="Next Month">
               <IconButton
                 onClick={handleNextMonth}
@@ -107,7 +149,6 @@ const HomePage = () => {
               </IconButton>
             </Tooltip>
           </Box>
-
           <Box
             mt={1}
             display="grid"
@@ -139,23 +180,15 @@ const HomePage = () => {
             ))}
           </Box>
         </Grid>
-
-        {/* Vertical Divider */}
         <Divider orientation="vertical" flexItem sx={{ mx: 0, borderRight: '3px solid #ccc' }} />
-
-        {/* Main Content */}
         <Grid item xs={8.9} sx={{ p: 4, backgroundColor: '#dbeafe', overflowY: 'auto' }}>
           <Typography variant="h4" gutterBottom>Welcome to OptiRoom!</Typography>
-          <Typography variant="body1" gutterBottom>
-            Start booking your room right now!
-          </Typography>
-
+          <Typography variant="body1" gutterBottom>Start booking your room right now!</Typography>
           <Box mt={3} sx={{ backgroundColor: '#f0f8ff', p: 3, borderRadius: 2 }}>
             <Typography variant="h6">Booking description</Typography>
             <Typography variant="body2" gutterBottom>
               Let us know your criteria and we’ll give you room suggestions!
             </Typography>
-
             <Paper sx={{ p: 2, mt: 1, backgroundColor: '#e0e0e0' }}>
               <TextField
                 fullWidth
@@ -168,7 +201,6 @@ const HomePage = () => {
                 sx={{ fontSize: '1.25rem' }}
               />
             </Paper>
-
             <Box display="flex" justifyContent="center">
               <Button
                 variant="contained"
@@ -180,17 +212,32 @@ const HomePage = () => {
               </Button>
             </Box>
           </Box>
-
-          {rooms.length > 0 && (
-            <Box mt={4}>
-              <Typography variant="h6">Suggestions</Typography>
-              <ul>
-                {rooms.map((room, i) => (
-                  <li key={i}>{room.name} - {room.capacity} people</li>
-                ))}
-              </ul>
-            </Box>
-          )}
+          
+{parsedResult && (
+  <Box mt={4} p={2} bgcolor="#f9f9f9" borderRadius={2}>
+    <Typography variant="h6" gutterBottom>Booking request summary</Typography>
+    {parsedResult.date || parsedResult.time || parsedResult.capacity || parsedResult.equipment ? (
+      <>
+        {parsedResult.date && (
+          <Typography><strong>Date:</strong> {parsedResult.date}</Typography>
+        )}
+        {parsedResult.time && (
+          <Typography><strong>Time:</strong> {parsedResult.time}</Typography>
+        )}
+        {parsedResult.capacity && (
+          <Typography><strong>Capacity:</strong> {parsedResult.capacity}</Typography>
+        )}
+        {Array.isArray(parsedResult.equipment) && parsedResult.equipment.length > 0 && (
+          <Typography>
+          <strong>Equipment:</strong> {parsedResult.equipment.join(', ')}
+          </Typography>
+      )}
+      </>
+    ) : (
+      <pre>{JSON.stringify(parsedResult, null, 2)}</pre>
+    )}
+  </Box>
+)}
         </Grid>
       </Grid>
     </>
@@ -198,3 +245,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+// This code defines a React component for the homepage of the OptiRoom application.
