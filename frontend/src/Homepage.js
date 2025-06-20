@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  AppBar, Toolbar, Tabs, Tab, Typography, Box, Button, TextField,
+import {Typography, Box, Button, TextField,
   Paper, Grid, Divider, IconButton, Tooltip
 } from '@mui/material';
-import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import dayjs from 'dayjs';
+import Header from './Header';
 
 const pages = [
   { label: 'Home', path: '/' },
@@ -118,7 +117,7 @@ const HomePage = () => {
 
   return (
     <>
-      <NavigationBar />
+      <Header/>
       <Grid container sx={{ height: 'calc(100vh - 64px)', width: '100vw', overflow: 'hidden' }}>
         <Grid item xs={3} sx={{ p: 2, backgroundColor: '#f5f5f5', overflowY: 'auto' }}>
           <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, mb: 2, backgroundColor: 'white' }}>
