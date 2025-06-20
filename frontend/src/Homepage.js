@@ -1,47 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {Typography, Box, Button, TextField,
-  Paper, Grid, Divider, IconButton, Tooltip
+import {
+  Typography,
+  Box,
+  Button,
+  TextField,
+  Paper,
+  Grid,
+  Divider,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import dayjs from 'dayjs';
 import Header from './Header';
-
-const pages = [
-  { label: 'Home', path: '/' },
-  { label: 'Schedule', path: '/schedule' },
-  { label: 'Room Details', path: '/room-details' },
-  { label: 'Floor Plan', path: '/floor-plan' },
-];
-
-const NavigationBar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const currentTab = pages.findIndex(p => p.path === location.pathname);
-
-  const handleTabChange = (event, newValue) => {
-    navigate(pages[newValue].path);
-  };
-  return (
-    <AppBar position="static" sx={{ backgroundColor: '#1e3a8a' }}>
-      <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          OptiRoom
-        </Typography>
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          textColor="inherit"
-          indicatorColor="secondary"
-        >
-          {pages.map((page, idx) => (
-            <Tab key={idx} label={page.label} />
-          ))}
-        </Tabs>
-      </Toolbar>
-    </AppBar>
-  );
-};
 
 const generateCalendarDays = (year, month) => {
   const startDate = dayjs(new Date(year, month, 1));
@@ -82,6 +52,7 @@ const HomePage = () => {
       setMonth(month - 1);
     }
   };
+
   const handleNextMonth = () => {
     if (month === 11) {
       setYear(year + 1);
@@ -90,37 +61,54 @@ const HomePage = () => {
       setMonth(month + 1);
     }
   };
+
   const handleSearch = async () => {
-    console.log("Submitting query:", query);
+    console.log('Submitting query:', query);
     setLoading(true);
     try {
-      const res = await fetch("/api/llm/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/llm/query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query }),
       });
       const data = await res.json();
       if (data.success) {
-        console.log("Parsed LLM response:", data.parsed);
+        console.log('Parsed LLM response:', data.parsed);
         let raw = data.parsed.trim();
-        raw = raw.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+        raw = raw.replace(/^```json\s*/, '').replace(/\s*```$/, '');
         const info = JSON.parse(raw);
         setParsedResult(info);
       }
     } catch (error) {
-      console.error("Failed to fetch:", error);
+      console.error('Failed to fetch:', error);
     } finally {
       setLoading(false);
     }
   };
+
   const days = generateCalendarDays(year, month);
 
   return (
     <>
-      <Header/>
-      <Grid container sx={{ height: 'calc(100vh - 64px)', width: '100vw', overflow: 'hidden' }}>
-        <Grid item xs={3} sx={{ p: 2, backgroundColor: '#f5f5f5', overflowY: 'auto' }}>
-          <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, mb: 2, backgroundColor: 'white' }}>
+      <Header />
+      <Grid
+        container
+        sx={{ height: 'calc(100vh - 64px)', width: '100vw', overflow: 'hidden' }}
+      >
+        <Grid
+          item
+          xs={3}
+          sx={{ p: 2, backgroundColor: '#f5f5f5', overflowY: 'auto' }}
+        >
+          <Box
+            sx={{
+              border: '1px solid #ccc',
+              borderRadius: 2,
+              p: 2,
+              mb: 2,
+              backgroundColor: 'white',
+            }}
+          >
             <Typography variant="h6">Current Time</Typography>
             <Typography variant="body1">{currentTime}</Typography>
           </Box>
@@ -132,10 +120,13 @@ const HomePage = () => {
                 size="large"
                 sx={{ bgcolor: '#e0f2fe', '&:hover': { bgcolor: '#bae6fd' } }}
               >
-                <ArrowBackIosNewIcon />
+                &#8592;
               </IconButton>
             </Tooltip>
-            <Typography variant="h5" sx={{ minWidth: 160, textAlign: 'center' }}>
+            <Typography
+              variant="h5"
+              sx={{ minWidth: 160, textAlign: 'center' }}
+            >
               {dayjs(new Date(year, month)).format('MMMM YYYY')}
             </Typography>
             <Tooltip title="Next Month">
@@ -145,7 +136,7 @@ const HomePage = () => {
                 size="large"
                 sx={{ bgcolor: '#e0f2fe', '&:hover': { bgcolor: '#bae6fd' } }}
               >
-                <ArrowForwardIosIcon />
+                &#8594;
               </IconButton>
             </Tooltip>
           </Box>
@@ -156,8 +147,10 @@ const HomePage = () => {
             gap={1}
             sx={{ border: '1px solid #ccc', borderRadius: 2, p: 1, backgroundColor: 'white' }}
           >
-            {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-              <Typography key={idx} align="center" fontWeight="bold">{day}</Typography>
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
+              <Typography key={idx} align="center" fontWeight="bold">
+                {day}
+              </Typography>
             ))}
             {days.map((day, idx) => (
               <Box
@@ -167,7 +160,9 @@ const HomePage = () => {
                   height: 30,
                   borderRadius: '50%',
                   backgroundColor:
-                    year === today.year() && month === today.month() && day === today.date()
+                    year === today.year() &&
+                    month === today.month() &&
+                    day === today.date()
                       ? '#90caf9'
                       : 'transparent',
                   display: 'flex',
@@ -180,10 +175,22 @@ const HomePage = () => {
             ))}
           </Box>
         </Grid>
-        <Divider orientation="vertical" flexItem sx={{ mx: 0, borderRight: '3px solid #ccc' }} />
-        <Grid item xs={8.9} sx={{ p: 4, backgroundColor: '#dbeafe', overflowY: 'auto' }}>
-          <Typography variant="h4" gutterBottom>Welcome to OptiRoom!</Typography>
-          <Typography variant="body1" gutterBottom>Start booking your room right now!</Typography>
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ mx: 0, borderRight: '3px solid #ccc' }}
+        />
+        <Grid
+          item
+          xs={8.9}
+          sx={{ p: 4, backgroundColor: '#dbeafe', overflowY: 'auto' }}
+        >
+          <Typography variant="h4" gutterBottom>
+            Welcome to OptiRoom!
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Start booking your room right now!
+          </Typography>
           <Box mt={3} sx={{ backgroundColor: '#f0f8ff', p: 3, borderRadius: 2 }}>
             <Typography variant="h6">Booking description</Typography>
             <Typography variant="body2" gutterBottom>
@@ -195,7 +202,7 @@ const HomePage = () => {
                 multiline
                 minRows={4}
                 variant="standard"
-                placeholder='“Find a room for Monday 3pm, with whiteboard”'
+                placeholder="“Find a room for Monday 3pm, with whiteboard”"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 sx={{ fontSize: '1.25rem' }}
@@ -212,32 +219,45 @@ const HomePage = () => {
               </Button>
             </Box>
           </Box>
-          
-{parsedResult && (
-  <Box mt={4} p={2} bgcolor="#f9f9f9" borderRadius={2}>
-    <Typography variant="h6" gutterBottom>Booking request summary</Typography>
-    {parsedResult.date || parsedResult.time || parsedResult.capacity || parsedResult.equipment ? (
-      <>
-        {parsedResult.date && (
-          <Typography><strong>Date:</strong> {parsedResult.date}</Typography>
-        )}
-        {parsedResult.time && (
-          <Typography><strong>Time:</strong> {parsedResult.time}</Typography>
-        )}
-        {parsedResult.capacity && (
-          <Typography><strong>Capacity:</strong> {parsedResult.capacity}</Typography>
-        )}
-        {Array.isArray(parsedResult.equipment) && parsedResult.equipment.length > 0 && (
-          <Typography>
-          <strong>Equipment:</strong> {parsedResult.equipment.join(', ')}
-          </Typography>
-      )}
-      </>
-    ) : (
-      <pre>{JSON.stringify(parsedResult, null, 2)}</pre>
-    )}
-  </Box>
-)}
+
+          {parsedResult && (
+            <Box mt={4} p={2} bgcolor="#f9f9f9" borderRadius={2}>
+              <Typography variant="h6" gutterBottom>
+                Booking request summary
+              </Typography>
+              {parsedResult.date ||
+              parsedResult.time ||
+              parsedResult.capacity ||
+              parsedResult.equipment ? (
+                <>
+                  {parsedResult.date && (
+                    <Typography>
+                      <strong>Date:</strong> {parsedResult.date}
+                    </Typography>
+                  )}
+                  {parsedResult.time && (
+                    <Typography>
+                      <strong>Time:</strong> {parsedResult.time}
+                    </Typography>
+                  )}
+                  {parsedResult.capacity && (
+                    <Typography>
+                      <strong>Capacity:</strong> {parsedResult.capacity}
+                    </Typography>
+                  )}
+                  {Array.isArray(parsedResult.equipment) &&
+                    parsedResult.equipment.length > 0 && (
+                      <Typography>
+                        <strong>Equipment:</strong>{' '}
+                        {parsedResult.equipment.join(', ')}
+                      </Typography>
+                    )}
+                </>
+              ) : (
+                <pre>{JSON.stringify(parsedResult, null, 2)}</pre>
+              )}
+            </Box>
+          )}
         </Grid>
       </Grid>
     </>
@@ -245,4 +265,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
-// This code defines a React component for the homepage of the OptiRoom application.
+// This code defines the HomePage component for the OptiRoom application.
