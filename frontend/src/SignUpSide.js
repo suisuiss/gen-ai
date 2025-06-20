@@ -58,7 +58,7 @@ export default function SignUpSide() {
     // Regular expression for email format.
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     // Regular expression for password format: at least 8 characters, at least one letter and one number.
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@#$]{8,}$/;
 
     const emailIsValid = emailRegex.test(formData.email);
     const passwordIsValid = passwordRegex.test(formData.password);
