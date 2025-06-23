@@ -36,11 +36,18 @@ export default function Header() {
   const handleTabChange = (event, newValue) => {
     navigate(pages[newValue].path);
   };
-
+  
   const [anchorEl, setAnchorEl] = useState(null);
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
+  // ✅ New logout handler
+  const handleLogout = () => {
+    handleMenuClose();
+    // Optionally, clear any auth tokens/localStorage here
+    navigate("/"); // Goes to the SignIn page
+  };
+  
   return (
     <AppBar
       position="static"
@@ -77,6 +84,7 @@ export default function Header() {
               <Avatar sx={{ width: 32, height: 32 }} />
             </IconButton>
           </Tooltip>
+          
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
@@ -84,7 +92,7 @@ export default function Header() {
             MenuListProps={{ disablePadding: true }}
             PaperProps={{ elevation: 3, sx: { mt: 1, borderRadius: 2 } }}
           >
-            <MenuItem onClick={handleMenuClose}>Logout</MenuItem>
+            <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Menu>
         </Box>
       </Toolbar>
