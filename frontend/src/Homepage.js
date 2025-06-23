@@ -1,4 +1,3 @@
-
 // HomePage.js
 import React, { useState, useEffect } from 'react';
 import {
@@ -16,21 +15,31 @@ import dayjs from 'dayjs';
 import Header from './Header';
 
 const HomePage = () => {
-  // Get the current date in a friendly format, e.g. "Wednesday, June 18, 2025"
-  const currentDate = dayjs().format('dddd, MMMM D, YYYY');
-
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [rooms, setRooms] = useState([]);
   const [parsedResult, setParsedResult] = useState(null);
   const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm:ss'));
 
+  const [month, setMonth] = useState(dayjs().month());
+  const [year, setYear] = useState(dayjs().year());
+  const [days, setDays] = useState([]);
+  const [today, setToday] = useState(dayjs());
+
+  // Live clock
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(dayjs().format('HH:mm:ss'));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Update calendar days when month/year changes
+  useEffect(() => {
+    const daysInMonth = dayjs(new Date(year, month)).daysInMonth();
+    const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    setDays(daysArray);
+    setToday(dayjs()); // update to current date
+  }, [month, year]);
 
   const handlePrevMonth = () => {
     if (month === 0) {
@@ -204,7 +213,7 @@ const HomePage = () => {
                   px: 4,
                   py: 1.5,
                   fontSize: '1.1rem',
-                  textTransform: 'uppercase'
+                  textTransform: 'uppercase',
                 }}
                 onClick={handleSearch}
                 disabled={loading}
@@ -259,4 +268,3 @@ const HomePage = () => {
 };
 
 export default HomePage;
-// This code defines the HomePage component for the OptiRoom application.
