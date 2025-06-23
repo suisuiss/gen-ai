@@ -6,6 +6,7 @@ import Homepage from './Homepage';
 import Floorplan from './floorplan';
 import RoomDetails from './RoomDetails';
 import Schedule from './Schedule';
+import RoomSuggestions from './RoomSuggestions';
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                     <Route path="/floor-plan" element={<Floorplan />} />
                     <Route path="/room-details" element={<RoomDetails />} />
                     <Route path="/schedule" element={<Schedule />} />
+                    <Route path="/room-suggestions" element={<RoomSuggestions />} />
                     <Route path="*" element={<h2>Page Not Found</h2>} />
                 </Routes>
             </div>

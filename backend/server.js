@@ -6,6 +6,7 @@ const signupRoutes = require('./routes/signup');
 const signinRoutes = require('./routes/signin');
 const llmRoutes = require('./routes/llm');
 const floorRoutes = require('./routes/floor');
+const roomsRoute = require('./routes/roomsuggestions');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -38,7 +39,9 @@ app.get('/', (req, res) => {
 
 app.use('/api', signupRoutes);
 app.use('/api', signinRoutes);
-app.use('/api', floorRoutes); 
+app.use('/api', floorRoutes);
+app.use('/api/rooms', roomsRoute);
+
 
 // Use the LLM routes
 app.use('/api/llm', llmRoutes);

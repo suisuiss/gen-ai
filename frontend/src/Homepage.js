@@ -1,268 +1,177 @@
-import React, { useState, useEffect } from 'react';
+// HomePage.js
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Typography,
   Box,
   Button,
   TextField,
-  Paper,
-  Grid,
-  Divider,
-  IconButton,
-  Tooltip,
+  Paper
 } from '@mui/material';
 import dayjs from 'dayjs';
 import Header from './Header';
 
-const generateCalendarDays = (year, month) => {
-  const startDate = dayjs(new Date(year, month, 1));
-  const endDate = startDate.endOf('month');
-  const days = [];
-  const startDay = startDate.day();
-
-  for (let i = 0; i < startDay; i++) {
-    days.push(null);
-  }
-  for (let d = 1; d <= endDate.date(); d++) {
-    days.push(d);
-  }
-  return days;
-};
-
 const HomePage = () => {
-  const today = dayjs();
-  const [year, setYear] = useState(today.year());
-  const [month, setMonth] = useState(today.month());
+  // Get the current date in a friendly format, e.g. "Wednesday, June 18, 2025"
+  const currentDate = dayjs().format('dddd, MMMM D, YYYY');
+
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [parsedResult, setParsedResult] = useState(null);
-  const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm:ss'));
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(dayjs().format('HH:mm:ss'));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const handlePrevMonth = () => {
-    if (month === 0) {
-      setYear(year - 1);
-      setMonth(11);
-    } else {
-      setMonth(month - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (month === 11) {
-      setYear(year + 1);
-      setMonth(0);
-    } else {
-      setMonth(month + 1);
-    }
-  };
+  const [rooms] = useState([]);
+  const navigate = useNavigate();
 
   const handleSearch = async () => {
-    console.log('Submitting query:', query);
-    setLoading(true);
-    try {
-      const res = await fetch('/api/llm/query', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        console.log('Parsed LLM response:', data.parsed);
-        let raw = data.parsed.trim();
-        raw = raw.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        const info = JSON.parse(raw);
-        setParsedResult(info);
-      }
-    } catch (error) {
-      console.error('Failed to fetch:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  console.log('Submitting query:', query);
+  setLoading(true);
+  try {
+    const res = await fetch('/api/llm/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      console.log('Parsed LLM response:', data.parsed);
+      let raw = data.parsed.trim();
+      raw = raw.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      const info = JSON.parse(raw);
 
-  const days = generateCalendarDays(year, month);
+      // 👇 New Part:
+      navigate("/room-suggestions", {
+        state: { parsedResult: info },
+      });
+    }
+  } catch (error) {
+    console.error('Failed to fetch:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>
       <Header />
-      <Grid
-        container
-        sx={{ height: 'calc(100vh - 64px)', width: '100vw', overflow: 'hidden' }}
+      <Box
+        sx={{
+          height: 'calc(100vh - 64px)',  // full height minus header
+          width: '100vw',
+          backgroundColor: '#f4f5f7',
+          p: 2,
+          fontFamily: 'Roboto, sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
       >
-        <Grid
-          item
-          xs={3}
-          sx={{ p: 2, backgroundColor: '#f5f5f5', overflowY: 'auto' }}
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 700,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4
+          }}
         >
-          <Box
+          {/* Welcome Box */}
+          <Paper
             sx={{
-              border: '1px solid #ccc',
+              p: 4,
               borderRadius: 2,
-              p: 2,
-              mb: 2,
-              backgroundColor: 'white',
+              boxShadow: 3,
+              textAlign: 'center'
             }}
           >
-            <Typography variant="h6">Current Time</Typography>
-            <Typography variant="body1">{currentTime}</Typography>
-          </Box>
-          <Box display="flex" justifyContent="center" alignItems="center" mb={2} gap={1}>
-            <Tooltip title="Previous Month">
-              <IconButton
-                onClick={handlePrevMonth}
-                color="primary"
-                size="large"
-                sx={{ bgcolor: '#e0f2fe', '&:hover': { bgcolor: '#bae6fd' } }}
-              >
-                &#8592;
-              </IconButton>
-            </Tooltip>
-            <Typography
-              variant="h5"
-              sx={{ minWidth: 160, textAlign: 'center' }}
-            >
-              {dayjs(new Date(year, month)).format('MMMM YYYY')}
+            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              Welcome to OptiRoom!
             </Typography>
-            <Tooltip title="Next Month">
-              <IconButton
-                onClick={handleNextMonth}
-                color="primary"
-                size="large"
-                sx={{ bgcolor: '#e0f2fe', '&:hover': { bgcolor: '#bae6fd' } }}
-              >
-                &#8594;
-              </IconButton>
-            </Tooltip>
-          </Box>
-          <Box
-            mt={1}
-            display="grid"
-            gridTemplateColumns="repeat(7, 1fr)"
-            gap={1}
-            sx={{ border: '1px solid #ccc', borderRadius: 2, p: 1, backgroundColor: 'white' }}
+            <Typography variant="h6" sx={{ color: '#777', mt: 2 }}>
+              {currentDate}
+            </Typography>
+          </Paper>
+
+          {/* Booking Form Box */}
+          <Paper
+            sx={{
+              p: 6,
+              borderRadius: 3,
+              boxShadow: 4,
+              backgroundColor: 'white',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
           >
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
-              <Typography key={idx} align="center" fontWeight="bold">
-                {day}
-              </Typography>
-            ))}
-            {days.map((day, idx) => (
-              <Box
-                key={idx}
-                sx={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: '50%',
-                  backgroundColor:
-                    year === today.year() &&
-                    month === today.month() &&
-                    day === today.date()
-                      ? '#90caf9'
-                      : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Typography>{day || ''}</Typography>
-              </Box>
-            ))}
-          </Box>
-        </Grid>
-        <Divider
-          orientation="vertical"
-          flexItem
-          sx={{ mx: 0, borderRight: '3px solid #ccc' }}
-        />
-        <Grid
-          item
-          xs={8.9}
-          sx={{ p: 4, backgroundColor: '#dbeafe', overflowY: 'auto' }}
-        >
-          <Typography variant="h4" gutterBottom>
-            Welcome to OptiRoom!
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Start booking your room right now!
-          </Typography>
-          <Box mt={3} sx={{ backgroundColor: '#f0f8ff', p: 3, borderRadius: 2 }}>
-            <Typography variant="h6">Booking description</Typography>
-            <Typography variant="body2" gutterBottom>
-              Let us know your criteria and we’ll give you room suggestions!
+            <Typography
+              variant="body1"
+              textAlign="center"
+              gutterBottom
+              sx={{ color: '#555', mb: 2 }}
+            >
+              Start booking your room now.
             </Typography>
-            <Paper sx={{ p: 2, mt: 1, backgroundColor: '#e0e0e0' }}>
+            <Paper
+              sx={{
+                p: 3,
+                backgroundColor: '#f7f7f7',
+                borderRadius: 2,
+                mb: 3,
+                width: '100%'
+              }}
+            >
               <TextField
                 fullWidth
                 multiline
                 minRows={4}
                 variant="standard"
-                placeholder="“Find a room for Monday 3pm, with whiteboard”"
+                placeholder="Find a room for Monday 3pm, with whiteboard"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                sx={{ fontSize: '1.25rem' }}
+                InputProps={{ disableUnderline: true }}
+                sx={{ fontSize: '1.4rem' }}
               />
             </Paper>
-            <Box display="flex" justifyContent="center">
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <Button
                 variant="contained"
-                sx={{ mt: 2, backgroundColor: '#a7d6f1', color: 'black' }}
+                sx={{
+                  backgroundColor: '#336699',
+                  color: '#ffffff',
+                  px: 4,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  textTransform: 'uppercase'
+                }}
                 onClick={handleSearch}
                 disabled={loading}
               >
-                {loading ? 'Searching...' : 'FIND ROOM SUGGESTIONS'}
+                {loading ? 'Processing...' : 'FIND ROOM SUGGESTIONS'}
               </Button>
             </Box>
-          </Box>
-
-          {parsedResult && (
-            <Box mt={4} p={2} bgcolor="#f9f9f9" borderRadius={2}>
-              <Typography variant="h6" gutterBottom>
-                Booking request summary
-              </Typography>
-              {parsedResult.date ||
-              parsedResult.time ||
-              parsedResult.capacity ||
-              parsedResult.equipment ? (
-                <>
-                  {parsedResult.date && (
-                    <Typography>
-                      <strong>Date:</strong> {parsedResult.date}
-                    </Typography>
-                  )}
-                  {parsedResult.time && (
-                    <Typography>
-                      <strong>Time:</strong> {parsedResult.time}
-                    </Typography>
-                  )}
-                  {parsedResult.capacity && (
-                    <Typography>
-                      <strong>Capacity:</strong> {parsedResult.capacity}
-                    </Typography>
-                  )}
-                  {Array.isArray(parsedResult.equipment) &&
-                    parsedResult.equipment.length > 0 && (
-                      <Typography>
-                        <strong>Equipment:</strong>{' '}
-                        {parsedResult.equipment.join(', ')}
-                      </Typography>
-                    )}
-                </>
-              ) : (
-                <pre>{JSON.stringify(parsedResult, null, 2)}</pre>
-              )}
-            </Box>
-          )}
-        </Grid>
-      </Grid>
+            {rooms.length > 0 && (
+              <Box mt={4} sx={{ width: '100%' }}>
+                <Typography variant="h6" textAlign="center">
+                  Suggestions
+                </Typography>
+                <ul
+                  style={{
+                    listStylePosition: 'inside',
+                    padding: 0,
+                    fontSize: '1.1rem'
+                  }}
+                >
+                  {rooms.map((room, i) => (
+                    <li key={i}>
+                      {room.name} - {room.capacity} people
+                    </li>
+                  ))}
+                </ul>
+              </Box>
+            )}
+          </Paper>
+        </Box>
+      </Box>
     </>
   );
 };
 
 export default HomePage;
-// This code defines the HomePage component for the OptiRoom application.

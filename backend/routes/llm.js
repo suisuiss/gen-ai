@@ -11,7 +11,8 @@ from natural language. Always respond in compact JSON format with only these fie
 
 {
   "date": "YYYY-MM-DD",
-  "time": "HH:MM",
+  "starttime": "HH:MM",
+  "endtime": "HH:MM",
   "capacity": number,
   "equipment": ["item1", "item2"]
 }
