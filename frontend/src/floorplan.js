@@ -20,12 +20,14 @@ const Floorplan = () => {
     }, []);
 
     const floorName = floor?.name;
+    const floorBuilding = floor?.building;
     const floorImage = floor?.image;
 
     return (
         <div>
             <Header />
             <div style={{ padding: '20px' }}>
+                <h1>{floorBuilding}</h1>
                 <h1>{floorName}</h1>
                 <img
                     src={floorImage}
