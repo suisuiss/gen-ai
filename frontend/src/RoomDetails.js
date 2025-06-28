@@ -111,19 +111,33 @@ const RoomDetails = () => {
   if (loading) return <div><Header /><Box p={4}><Typography>Loading room details...</Typography></Box></div>;
   if (!rooms.length) return <div><Header /><Box p={4}><Typography>No room details found.</Typography></Box></div>;
 
+  
   return (
     <div>
       <Header />
-      <Box p={4} display="flex" flexDirection="row" justifyContent="center" alignItems="flex-start" gap={4}>
-        {/* Room Overview Table */}
-        <Box minWidth={220}>
-          <Typography variant="h6" mb={2}>Room Overview</Typography>
+      <Box display="flex">
+  
+        {/* Room Overview (same size header as Room Details) */}
+        <Box
+          minWidth={300}
+          maxWidth={300}
+          p={2}
+          sx={{
+            position: 'sticky',
+            top: 0,
+            alignSelf: 'flex-start',
+            height: '100vh',
+            bgcolor: '#f5f5f5',
+            borderRight: '1px solid #ddd'
+          }}
+        >
+          <Typography variant="h5" align="center" mb={2} sx={{ fontSize: '22px'}}>Room Overview</Typography>
           <TableContainer component={Paper}>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f5f5f5' }}>Rooms</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f5f5f5' }}>Capacity</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Rooms</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Capacity</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -132,7 +146,10 @@ const RoomDetails = () => {
                     key={room.id}
                     hover
                     onClick={() => setSelectedRoom(room)}
-                    sx={{ cursor: 'pointer', bgcolor: selectedRoom && selectedRoom.id === room.id ? '#b6f5b6' : 'inherit' }}
+                    sx={{
+                      cursor: 'pointer',
+                      bgcolor: selectedRoom && selectedRoom.id === room.id ? '#b6f5b6' : undefined,
+                    }}
                   >
                     <TableCell>{room.name}</TableCell>
                     <TableCell>{room.capacity}</TableCell>
@@ -142,122 +159,109 @@ const RoomDetails = () => {
             </Table>
           </TableContainer>
         </Box>
-        {/* Room Details Card */}
-        <Box flex={1}>
-          <Typography variant="h5" mb={2}>Room Details</Typography>
+  
+        {/* Room Details shifted slightly left */}
+        <Box flex={1} ml={-28} p={4} display="flex" flexDirection="column" alignItems="center">
+          <Typography variant="h5" align="center" gutterBottom sx={{ fontSize: '26px', fontWeight: 'bold' }}>Room Details</Typography>
           {selectedRoom && (
-            <Paper sx={{ mb: 4, p: 3, borderRadius: 3 }}>
-              <Box display="flex" flexDirection="column" alignItems="center">
-                <img
+            <Paper sx={{ p: 4, borderRadius: 3, bgcolor: '#ffffff', width: '100%', maxWidth: 900 }}>
+              {/* Image */}
+              <Box display="flex" justifyContent="center">
+                <Box
+                  component="img"
                   src={roomImages[Math.floor(Math.random() * roomImages.length)]}
                   alt={selectedRoom.name}
-                  style={{ width: '100%', maxWidth: 700, height: 'auto', borderRadius: 8, marginBottom: 16 }}
+                  sx={{ width: '100%', maxWidth: 900, borderRadius: 2, mb: 2 }}
                 />
               </Box>
-              <Grid container spacing={2} sx={{ bgcolor: '#e0e0e0', borderRadius: 2, mt: 1, p: 2 }}>
-                <Grid item xs={12} md={8}>
-                  <Typography variant="body1" fontWeight="bold" gutterBottom>
+  
+              {/* Description and Booking aligned */}
+              <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} bgcolor="#e0e0e0" p={3} borderRadius={2}>
+                <Box flex={1} pr={{ md: 3 }}>
+                  <Typography sx={{ fontWeight: 'bold', fontSize: '18px' }}>
                     Building D, 1st floor<br />
                     Room Name: {selectedRoom.name}<br />
                     Capacity: up to {selectedRoom.capacity} people
                   </Typography>
-                  <Typography variant="body2" mt={2}>
-                    A spacious and modern meeting room designed for mid-sized groups.<br />
-                    Features include a whiteboard, TV, and a high-quality conference sound system. Ideal for presentations, workshops, and collaborative meetings.
+                  <Typography sx={{ mt: 2 }}>
+                    A spacious and modern meeting room designed for mid-sized groups. Features include a whiteboard, TV, and a high-quality conference sound system. Ideal for presentations, workshops, and collaborative meetings, providing a comfortable and productive environment for your team or guests.
                   </Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Box component="form" display="flex" flexDirection="column" gap={2}>
+                </Box>
+  
+                {/* Booking */}
+                <Box
+                  bgcolor="#d0e9f7"
+                  p={3}
+                  borderRadius={2}
+                  display="flex"
+                  flexDirection="column"
+                  gap={2}
+                  alignItems="center"
+                  maxWidth={300}
+                  width="100%"
+                  mt={{ xs: 3, md: 0 }}
+                >
+                  <TextField
+                    label="Start Date"
+                    name="date"
+                    type="date"
+                    value={form.date}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <Box display="flex" gap={1} width="100%">
                     <TextField
-                      label="Start Date"
-                      name="date"
-                      type="date"
-                      value={form.date}
+                      label="From"
+                      name="from"
+                      type="time"
+                      value={form.from}
                       onChange={handleInputChange}
                       InputLabelProps={{ shrink: true }}
                       fullWidth
-                      inputProps={{ min: dayjs().format('YYYY-MM-DD'), pattern: '\\d{4}-\\d{2}-\\d{2}' }}
-                      error={!!dateError}
-                      helperText={dateError}
-                    />
-                    <Box display="flex" gap={1}>
-                      <TextField
-                        label="From"
-                        name="from"
-                        type="time"
-                        value={form.from}
-                        onChange={handleInputChange}
-                        InputLabelProps={{ shrink: true }}
-                        fullWidth
-                      />
-                      <TextField
-                        label="To"
-                        name="to"
-                        type="time"
-                        value={form.to}
-                        onChange={handleInputChange}
-                        InputLabelProps={{ shrink: true }}
-                        fullWidth
-                      />
-                    </Box>
-                    <TextField
-                      label="Capacity"
-                      name="capacity"
-                      type="number"
-                      value={form.capacity}
-                      onChange={handleInputChange}
-                      fullWidth
-                      inputProps={{ min: 1 }}
-                      error={!!capacityError}
-                      helperText={capacityError}
                     />
                     <TextField
-                      label="Equipment"
-                      name="equipment"
-                      value={form.equipment}
+                      label="To"
+                      name="to"
+                      type="time"
+                      value={form.to}
                       onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
                       fullWidth
                     />
-                    <Button
-                      variant="contained"
-                      sx={{ bgcolor: '#7fd0f7', color: '#222', mt: 2, width: '100%' }}
-                      onClick={() => handleBook(selectedRoom)}
-                    >
-                      BOOK NOW
-                    </Button>
                   </Box>
-                </Grid>
-              </Grid>
+                  <TextField
+                    label="Capacity"
+                    name="capacity"
+                    type="number"
+                    value={form.capacity}
+                    onChange={handleInputChange}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Equipment"
+                    name="equipment"
+                    value={form.equipment}
+                    onChange={handleInputChange}
+                    fullWidth
+                  />
+                  <Button
+                    variant="contained"
+                    sx={{ bgcolor: '#7fd0f7', color: '#222', mt: 1 }}
+                    onClick={handleBook}
+                    fullWidth
+                  >
+                    BOOK NOW
+                  </Button>
+                </Box>
+              </Box>
             </Paper>
           )}
-          <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>Booking Confirmation</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                {selectedRoom && (
-                  <>
-                    You are about to book <b>{selectedRoom.name}</b> on <b>{form.date}</b> from <b>{form.from}</b> to <b>{form.to}</b>.<br />
-                    Capacity: {form.capacity}<br />
-                    Equipment: {form.equipment}
-                  </>
-                )}
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>Cancel</Button>
-              <Button onClick={handleConfirm} variant="contained">Confirm</Button>
-            </DialogActions>
-          </Dialog>
-          <Snackbar
-            open={success}
-            autoHideDuration={3000}
-            onClose={() => setSuccess(false)}
-            message="Booking confirmed!"
-          />
         </Box>
       </Box>
     </div>
   );
-};
+  
+}
 
 export default RoomDetails;
