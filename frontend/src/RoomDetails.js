@@ -19,7 +19,7 @@ const RoomDetails = () => {
     date: dayjs().format('YYYY-MM-DD'),
     from: '', to: ''
   });
-  const [errors, setErrors] = useState({ date: '' });
+  const [errors, setErrors] = useState({ date: '', time: '' });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -65,21 +65,30 @@ const RoomDetails = () => {
   // 4) On BOOK NOW click: validate date/time
   const handleBookClick = () => {
     const now = dayjs();
+    const dateStamp = dayjs(form.date);
     const startStamp = dayjs(`${form.date}T${form.from}`);
+    const endStamp = dayjs(`${form.date}T${form.to}`);
+    const errs = { date: '', time: '' };
     let ok = true;
-    const errs = { date: '' };
 
-    if (!startStamp.isValid() || startStamp.isBefore(now)) {
+    if (!dateStamp.isValid() || startStamp.isBefore(now)) {
       errs.date = 'Selected start time is in the past';
       ok = false;
     }
+
+    if (!endStamp.isAfter(startStamp)) {
+      errs.time = 'End time must be after start time';
+      ok = false;
+    }
+    
+
     setErrors(errs);
 
-    if (ok) {
-      setConfirmOpen(true);
-    } else {
-      setErrorMsg(errs.date);
+    if (!ok) {
+      setErrorMsg(errs.date || errs.time);
       setErrorOpen(true);
+    } else {
+      setConfirmOpen(true);
     }
   };
 
@@ -254,6 +263,8 @@ const RoomDetails = () => {
                         InputLabelProps={{ shrink: true }}
                         value={form.to} onChange={handleInput}
                         fullWidth
+                        error={!!errors.time}
+                        helperText={errors.time}
                       />
                     </Box>
                     <Button
