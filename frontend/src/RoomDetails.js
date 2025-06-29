@@ -115,12 +115,12 @@ const RoomDetails = () => {
   return (
     <div>
       <Header />
-      <Box display="flex">
+      <Box display="flex" width="100%">
   
         {/* Room Overview (same size header as Room Details) */}
         <Box
-          minWidth={300}
-          maxWidth={300}
+          minWidth={350}
+          maxWidth={350}
           p={2}
           sx={{
             position: 'sticky',
@@ -130,14 +130,15 @@ const RoomDetails = () => {
             bgcolor: '#f5f5f5',
             borderRight: '1px solid #ddd'
           }}
+          
         >
-          <Typography variant="h5" align="center" mb={2} sx={{ fontSize: '22px'}}>Room Overview</Typography>
+          <Typography variant="h5" align="center" mb={2} sx={{ fontSize: '24px', fontFamily: 'Roboto, sans-serif'}}>Room Overview</Typography>
           <TableContainer component={Paper}>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Rooms</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Capacity</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '20px' }}>Rooms</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '20px' }}>Capacity</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -151,8 +152,8 @@ const RoomDetails = () => {
                       bgcolor: selectedRoom && selectedRoom.id === room.id ? '#b6f5b6' : undefined,
                     }}
                   >
-                    <TableCell>{room.name}</TableCell>
-                    <TableCell>{room.capacity}</TableCell>
+                    <TableCell sx={{ fontSize: '16px' }}>{room.name}</TableCell>
+                    <TableCell sx={{ fontSize: '16px' }}>{room.capacity}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -161,29 +162,29 @@ const RoomDetails = () => {
         </Box>
   
         {/* Room Details shifted slightly left */}
-        <Box flex={1} ml={-28} p={4} display="flex" flexDirection="column" alignItems="center">
-          <Typography variant="h5" align="center" gutterBottom sx={{ fontSize: '26px', fontWeight: 'bold' }}>Room Details</Typography>
+        <Box flex={1} p={4} display="flex" flexDirection="column" alignItems="flex-start" sx={{ ml: { xs: 0, md: 'calc(150px + -80px)' } }}>
+          <Typography variant="h5" align="center" gutterBottom sx={{ fontSize: '26px', fontFamily: 'Roboto, sans-serif', ml: 60, fontWeight: 'bold' }}>Room Details</Typography>
           {selectedRoom && (
-            <Paper sx={{ p: 4, borderRadius: 3, bgcolor: '#ffffff', width: '100%', maxWidth: 900 }}>
+            <Paper sx={{ p: 6, borderRadius: 4, bgcolor: '#ffffff', width: '100%', maxWidth: 1200 }}>
               {/* Image */}
               <Box display="flex" justifyContent="center">
                 <Box
                   component="img"
                   src={roomImages[Math.floor(Math.random() * roomImages.length)]}
                   alt={selectedRoom.name}
-                  sx={{ width: '100%', maxWidth: 900, borderRadius: 2, mb: 2 }}
+                  sx={{ width: '100%', maxWidth: 1200, borderRadius: 4, mb: 2 }}
                 />
               </Box>
   
               {/* Description and Booking aligned */}
-              <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} bgcolor="#e0e0e0" p={3} borderRadius={2}>
+              <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} bgcolor="#e0e0e0" p={3} borderRadius={4}>
                 <Box flex={1} pr={{ md: 3 }}>
-                  <Typography sx={{ fontWeight: 'bold', fontSize: '18px' }}>
+                  <Typography sx={{ fontWeight: 'bold', fontSize: '22px' }}>
                     Building D, 1st floor<br />
                     Room Name: {selectedRoom.name}<br />
                     Capacity: up to {selectedRoom.capacity} people
                   </Typography>
-                  <Typography sx={{ mt: 2 }}>
+                  <Typography sx={{ mt: 4, maxWidth: '600px', fontSize: '18px' }}>
                     A spacious and modern meeting room designed for mid-sized groups. Features include a whiteboard, TV, and a high-quality conference sound system. Ideal for presentations, workshops, and collaborative meetings, providing a comfortable and productive environment for your team or guests.
                   </Typography>
                 </Box>
@@ -192,12 +193,12 @@ const RoomDetails = () => {
                 <Box
                   bgcolor="#d0e9f7"
                   p={3}
-                  borderRadius={2}
+                  borderRadius={6}
                   display="flex"
                   flexDirection="column"
                   gap={2}
                   alignItems="center"
-                  maxWidth={300}
+                  maxWidth={400}
                   width="100%"
                   mt={{ xs: 3, md: 0 }}
                 >
@@ -247,7 +248,7 @@ const RoomDetails = () => {
                   />
                   <Button
                     variant="contained"
-                    sx={{ bgcolor: '#7fd0f7', color: '#222', mt: 1 }}
+                    sx={{ bgcolor: '#7fd0f7', fontWeight: 'bold', color: '#222', mt: 1 }}
                     onClick={handleBook}
                     fullWidth
                   >
