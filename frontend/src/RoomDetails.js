@@ -194,10 +194,11 @@ const RoomDetails = () => {
           {selectedRoom.photoURL && (
             <Paper sx={{ p: 6, borderRadius: 4, bgcolor: '#ffffff', width: '100%', maxWidth: 1200 }}>
               <Box display="flex" justifyContent="center">
-                <img
+                <Box
+                  component="img"
                   src={selectedRoom.photoURL}
                   alt={selectedRoom.roomName}
-                  style={{ width: '100%', maxWidth: 1200, borderRadius: 4, mb: 2 }}
+                  sx={{ width: '100%', maxWidth: 1200, borderRadius: 4, mb: 2 }}
                 />
               </Box>
 
