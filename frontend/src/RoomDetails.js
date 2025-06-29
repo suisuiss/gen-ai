@@ -1,263 +1,346 @@
+// src/components/RoomDetails.jsx
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
-import {
-  Box, Typography, Grid, Button, Paper, TextField, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
-} from '@mui/material';
-import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
-import Snackbar from '@mui/material/Snackbar';
+import {
+  Box, Typography, Button, Paper,
+  TextField, Dialog, DialogTitle,
+  DialogContent, DialogContentText,
+  DialogActions, Table, TableBody,
+  TableCell, TableContainer, TableHead,
+  TableRow
+} from '@mui/material';
 
 const RoomDetails = () => {
-  const location = useLocation();
-  // Get booking params if coming from Room Suggestions
-  const suggestionParams = location.state?.parsedResult || {};
-
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({
-    date: suggestionParams.date || dayjs().format('YYYY-MM-DD'),
-    from: suggestionParams.starttime || '',
-    to: suggestionParams.endtime || '',
-    capacity: suggestionParams.capacity || '',
-    equipment: suggestionParams.equipment || '',
-    roomName: '',
-  });
-  const [open, setOpen] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [dateError, setDateError] = useState('');
-  const [capacityError, setCapacityError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [form, setForm] = useState({
+    date: dayjs().format('YYYY-MM-DD'),
+    from: '', to: ''
+  });
+  const [errors, setErrors] = useState({ date: '', time: '' });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [errorOpen, setErrorOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [bookingErrorOpen, setBookingError] = useState(false);
+  const [bookingErrorMsg, setBookingErrorMsg] = useState('');
+  const [bookingSuccessOpen, setBookingSuccess] = useState(false);
 
-  const roomImages = [
-    '/rooms/modern-classroom.jpg',
-    '/rooms/lecture-hall.jpg',
-    '/rooms/meeting-room.jpg',
-  ];
+  // Utility: fetch all rooms from the backend
+  async function loadRooms() {
+    const res = await fetch('/api/detail');
+    const data = await res.json();
+    setRooms(data);
+    return data;
+  }
 
+  // 1) Initial load on mount
   useEffect(() => {
-    const fetchRooms = async () => {
+    (async () => {
       setLoading(true);
       try {
-        const response = await fetch('/api/rooms/available', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-        });
-        const data = await response.json();
-        setRooms(data.rooms || []);
-        // Select the first room by default if none selected
-        if (!selectedRoom && data.rooms && data.rooms.length > 0) {
-          setSelectedRoom(data.rooms[0]);
-        }
-      } catch (err) {
-        setRooms([]);
+        const data = await loadRooms();
+        if (data.length) setSelectedRoom(data[0]);
+      } catch (e) {
+        console.error('Failed to load rooms', e);
       } finally {
         setLoading(false);
       }
-    };
-    fetchRooms();
-    // eslint-disable-next-line
+    })();
   }, []);
 
-  const handleInputChange = (e) => {
+  // 2) Handle form inputs
+  const handleInput = e => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm(f => ({ ...f, [name]: value }));
   };
 
-  const handleBook = (room) => {
-    // Validate date: must be today or in the future, and year must be 4 digits
-    const today = dayjs().startOf('day');
-    const selected = dayjs(form.date);
-    let valid = true;
-    if (!selected.isValid() || selected.isBefore(today) || form.date.length !== 10 || !/^\d{4}-\d{2}-\d{2}$/.test(form.date)) {
-      setDateError('Please select a valid date (today or future, 4-digit year).');
-      valid = false;
-    } else {
-      setDateError('');
+  // 3) Enable BOOK NOW only when date, from, to are set
+  const canBook =
+    form.date.trim() !== '' &&
+    form.from.trim() !== '' &&
+    form.to.trim() !== '';
+
+  // 4) On BOOK NOW click: validate date/time
+  const handleBookClick = () => {
+    const now = dayjs();
+    const dateStamp = dayjs(form.date);
+    const startStamp = dayjs(`${form.date}T${form.from}`);
+    const endStamp = dayjs(`${form.date}T${form.to}`);
+    const errs = { date: '', time: '' };
+    let ok = true;
+
+    if (!dateStamp.isValid() || startStamp.isBefore(now)) {
+      errs.date = 'Selected start time is in the past';
+      ok = false;
     }
-    if (!form.capacity || isNaN(form.capacity) || Number(form.capacity) <= 0) {
-      setCapacityError('Capacity must be a positive number.');
-      valid = false;
-    } else {
-      setCapacityError('');
+
+    if (!endStamp.isAfter(startStamp)) {
+      errs.time = 'End time must be after start time';
+      ok = false;
     }
-    if (!valid) return;
-    setSelectedRoom(room);
-    setForm((prev) => ({ ...prev, roomName: room.name }));
-    setOpen(true);
+    
+
+    setErrors(errs);
+
+    if (!ok) {
+      setErrorMsg(errs.date || errs.time);
+      setErrorOpen(true);
+    } else {
+      setConfirmOpen(true);
+    }
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    setSelectedRoom(null);
+  // 5) On Confirm: POST to booking endpoint, then reload rooms & keep selection
+  const confirmBooking = async () => {
+    setConfirmOpen(false);
+    try {
+      const res = await fetch(
+        `/api/bookings/${selectedRoom._id}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: form.date,
+            from: form.from,
+            to: form.to
+          })
+        }
+      );
+      if (res.status === 409) {
+        setBookingErrorMsg('That time slot was just taken.');
+        setBookingError(true);
+        return;
+      }
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      // success
+      setBookingSuccess(true);
+      setLoading(true);
+      const data = await loadRooms();
+      // re-select same room if still present
+      const updated = data.find(r => r._id === selectedRoom._id);
+      setSelectedRoom(updated || data[0] || null);
+    } catch (err) {
+      console.error('Booking error:', err);
+      setBookingErrorMsg('Unexpected error, please try again.');
+      setBookingError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleConfirm = () => {
-    // Simulate booking (no backend yet)
-    setOpen(false);
-    setSelectedRoom(null);
-    setSuccess(true);
-    setForm({
-      date: dayjs().format('YYYY-MM-DD'),
-      from: '',
-      to: '',
-      capacity: '',
-      equipment: '',
-      roomName: '',
-    });
-    // Optionally, show a snackbar or redirect
-  };
+  if (loading) {
+    return <>
+      <Header />
+      <Box p={4}><Typography>Loading rooms…</Typography></Box>
+    </>;
+  }
 
-  if (loading) return <div><Header /><Box p={4}><Typography>Loading room details...</Typography></Box></div>;
-  if (!rooms.length) return <div><Header /><Box p={4}><Typography>No room details found.</Typography></Box></div>;
+  if (!rooms.length) {
+    return <>
+      <Header />
+      <Box p={4}><Typography>No rooms available.</Typography></Box>
+    </>;
+  }
 
   return (
     <div>
       <Header />
-      <Box p={4} display="flex" flexDirection="row" justifyContent="center" alignItems="flex-start" gap={4}>
-        {/* Room Overview Table */}
-        <Box minWidth={220}>
-          <Typography variant="h6" mb={2}>Room Overview</Typography>
+      <Box display="flex" width="100%">
+        {/* Sidebar: Room List */}
+        <Box
+          minWidth={350}
+          maxWidth={350}
+          p={2}
+          sx={{
+            position: 'sticky',
+            top: 0,
+            alignSelf: 'flex-start',
+            height: '100vh',
+            bgcolor: '#f5f5f5',
+            borderRight: '1px solid #ddd'
+          }}
+
+        >
+          <Typography variant="h5" align="center" mb={2} sx={{ fontSize: '24px', fontFamily: 'Roboto, sans-serif' }}>Room Overview</Typography>
           <TableContainer component={Paper}>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f5f5f5' }}>Rooms</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold', bgcolor: '#f5f5f5' }}>Capacity</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '20px' }}>Rooms</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '20px' }}>Capacity</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rooms.map((room) => (
+                {rooms.map(r => (
                   <TableRow
-                    key={room.id}
+                    key={r._id}
                     hover
-                    onClick={() => setSelectedRoom(room)}
-                    sx={{ cursor: 'pointer', bgcolor: selectedRoom && selectedRoom.id === room.id ? '#b6f5b6' : 'inherit' }}
+                    onClick={() => setSelectedRoom(r)}
+                    sx={{
+                      cursor: 'pointer',
+                      bgcolor:
+                        selectedRoom?._id === r._id
+                          ? '#b6f5b6'
+                          : undefined
+                    }}
                   >
-                    <TableCell>{room.name}</TableCell>
-                    <TableCell>{room.capacity}</TableCell>
+                    <TableCell sx={{ fontSize: '16px' }}>{r.roomName}</TableCell>
+                    <TableCell sx={{ fontSize: '16px' }}>{r.capacity}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
         </Box>
-        {/* Room Details Card */}
-        <Box flex={1}>
-          <Typography variant="h5" mb={2}>Room Details</Typography>
-          {selectedRoom && (
-            <Paper sx={{ mb: 4, p: 3, borderRadius: 3 }}>
-              <Box display="flex" flexDirection="column" alignItems="center">
-                <img
-                  src={roomImages[Math.floor(Math.random() * roomImages.length)]}
-                  alt={selectedRoom.name}
-                  style={{ width: '100%', maxWidth: 700, height: 'auto', borderRadius: 8, marginBottom: 16 }}
+
+        {/* Detail & Booking */}
+        <Box flex={1} p={4} display="flex" flexDirection="column" alignItems="flex-start" sx={{ ml: { xs: 0, md: 'calc(150px + -80px)' } }}>
+          <Typography variant="h5" align="center" gutterBottom sx={{ fontSize: '26px', fontFamily: 'Roboto, sans-serif', ml: 60, fontWeight: 'bold' }}>Room Details</Typography>
+          {selectedRoom.photoURL && (
+            <Paper sx={{ p: 6, borderRadius: 4, bgcolor: '#ffffff', width: '100%', maxWidth: 1200 }}>
+              <Box display="flex" justifyContent="center">
+                <Box
+                  component="img"
+                  src={selectedRoom.photoURL}
+                  alt={selectedRoom.roomName}
+                  sx={{ width: '100%', maxWidth: 1200, borderRadius: 4, mb: 2 }}
                 />
               </Box>
-              <Grid container spacing={2} sx={{ bgcolor: '#e0e0e0', borderRadius: 2, mt: 1, p: 2 }}>
-                <Grid item xs={12} md={8}>
-                  <Typography variant="body1" fontWeight="bold" gutterBottom>
-                    Building D, 1st floor<br />
-                    Room Name: {selectedRoom.name}<br />
-                    Capacity: up to {selectedRoom.capacity} people
-                  </Typography>
-                  <Typography variant="body2" mt={2}>
-                    A spacious and modern meeting room designed for mid-sized groups.<br />
-                    Features include a whiteboard, TV, and a high-quality conference sound system. Ideal for presentations, workshops, and collaborative meetings.
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Box component="form" display="flex" flexDirection="column" gap={2}>
+
+              {selectedRoom && (
+                <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} bgcolor="#e0e0e0" p={3} borderRadius={4}>
+                  <Box flex={1} pr={{ md: 3 }}>
+                    <Typography sx={{ fontWeight: 'bold', fontSize: '22px' }}>
+                      {selectedRoom.roomName}
+                    </Typography>
+                    <Typography sx={{ mb: 2, fontSize: '20px' }}>
+                      <strong>Building:</strong> {selectedRoom.building}<br />
+                      <strong>Floor:</strong> {selectedRoom.floor}<br />
+                      <strong>Capacity:</strong> up to {selectedRoom.capacity} people
+                    </Typography>
+
+
+                    {selectedRoom.description && (
+                      <Typography sx={{ mt: 4, maxWidth: '600px', fontSize: '16px' }}>
+                        {selectedRoom.description}
+                      </Typography>
+                    )}</Box>
+
+                  {/* Booking Form */}
+                  <Box
+                    bgcolor="#d0e9f7"
+                    p={3}
+                    borderRadius={6}
+                    display="flex"
+                    flexDirection="column"
+                    gap={2}
+                    alignItems="center"
+                    maxWidth={400}
+                    width="100%"
+                    mt={{ xs: 3, md: 0 }}
+                  >
                     <TextField
-                      label="Start Date"
-                      name="date"
-                      type="date"
-                      value={form.date}
-                      onChange={handleInputChange}
+                      label="Start Date" name="date" type="date"
                       InputLabelProps={{ shrink: true }}
+                      value={form.date} onChange={handleInput}
+                      error={!!errors.date}
+                      helperText={errors.date}
                       fullWidth
-                      inputProps={{ min: dayjs().format('YYYY-MM-DD'), pattern: '\\d{4}-\\d{2}-\\d{2}' }}
-                      error={!!dateError}
-                      helperText={dateError}
                     />
-                    <Box display="flex" gap={1}>
+                    <Box display="flex" gap={1} width="100%">
                       <TextField
-                        label="From"
-                        name="from"
-                        type="time"
-                        value={form.from}
-                        onChange={handleInputChange}
+                        label="From" name="from" type="time"
                         InputLabelProps={{ shrink: true }}
+                        value={form.from} onChange={handleInput}
                         fullWidth
                       />
                       <TextField
-                        label="To"
-                        name="to"
-                        type="time"
-                        value={form.to}
-                        onChange={handleInputChange}
+                        label="To" name="to" type="time"
                         InputLabelProps={{ shrink: true }}
+                        value={form.to} onChange={handleInput}
                         fullWidth
+                        error={!!errors.time}
+                        helperText={errors.time}
                       />
                     </Box>
-                    <TextField
-                      label="Capacity"
-                      name="capacity"
-                      type="number"
-                      value={form.capacity}
-                      onChange={handleInputChange}
-                      fullWidth
-                      inputProps={{ min: 1 }}
-                      error={!!capacityError}
-                      helperText={capacityError}
-                    />
-                    <TextField
-                      label="Equipment"
-                      name="equipment"
-                      value={form.equipment}
-                      onChange={handleInputChange}
-                      fullWidth
-                    />
                     <Button
                       variant="contained"
-                      sx={{ bgcolor: '#7fd0f7', color: '#222', mt: 2, width: '100%' }}
-                      onClick={() => handleBook(selectedRoom)}
+                      disabled={!canBook}
+                      onClick={handleBookClick}
+                      sx={{ bgcolor: '#7fd0f7', fontWeight: 'bold', color: '#222', mt: 1 }}
+                      fullWidth
                     >
                       BOOK NOW
                     </Button>
                   </Box>
-                </Grid>
-              </Grid>
+                </Box>
+              )}
             </Paper>
           )}
-          <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>Booking Confirmation</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                {selectedRoom && (
-                  <>
-                    You are about to book <b>{selectedRoom.name}</b> on <b>{form.date}</b> from <b>{form.from}</b> to <b>{form.to}</b>.<br />
-                    Capacity: {form.capacity}<br />
-                    Equipment: {form.equipment}
-                  </>
-                )}
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleClose}>Cancel</Button>
-              <Button onClick={handleConfirm} variant="contained">Confirm</Button>
-            </DialogActions>
-          </Dialog>
-          <Snackbar
-            open={success}
-            autoHideDuration={3000}
-            onClose={() => setSuccess(false)}
-            message="Booking confirmed!"
-          />
         </Box>
       </Box>
+
+      {/* Past‐time Error Dialog */}
+      <Dialog open={errorOpen} onClose={() => setErrorOpen(false)}>
+        <DialogTitle>Invalid Time</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{errorMsg}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setErrorOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirm Booking Dialog */}
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
+        <DialogTitle>Confirm Booking</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You’re booking <strong>{selectedRoom?.roomName}</strong> on{' '}
+            <strong>{form.date}</strong> from{' '}
+            <strong>{form.from}</strong> to{' '}
+            <strong>{form.to}</strong>.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={confirmBooking} variant="contained">Confirm</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Booking Conflict Dialog */}
+      <Dialog open={bookingErrorOpen} onClose={() => setBookingError(false)}>
+        <DialogTitle>Booking Conflict</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{bookingErrorMsg}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBookingError(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Booking Success Dialog */}
+      <Dialog open={bookingSuccessOpen} onClose={() => setBookingSuccess(false)}>
+        <DialogTitle>Booking Confirmed</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Your booking for <strong>{selectedRoom?.roomName}</strong> on{' '}
+            <strong>{form.date}</strong> from{' '}
+            <strong>{form.from}</strong> to{' '}
+            <strong>{form.to}</strong> is confirmed.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBookingSuccess(false)}>OK</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
 
 export default RoomDetails;
+
