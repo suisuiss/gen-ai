@@ -138,18 +138,31 @@ const RoomDetails = () => {
   }
 
   return (
-    <>
+    <div>
       <Header />
-      <Box display="flex" p={4} gap={4}>
+      <Box display="flex" width="100%">
         {/* Sidebar: Room List */}
-        <Box minWidth={220}>
-          <Typography variant="h6" mb={2}>Rooms</Typography>
+        <Box
+          minWidth={350}
+          maxWidth={350}
+          p={2}
+          sx={{
+            position: 'sticky',
+            top: 0,
+            alignSelf: 'flex-start',
+            height: '100vh',
+            bgcolor: '#f5f5f5',
+            borderRight: '1px solid #ddd'
+          }}
+
+        >
+          <Typography variant="h5" align="center" mb={2} sx={{ fontSize: '24px', fontFamily: 'Roboto, sans-serif' }}>Room Overview</Typography>
           <TableContainer component={Paper}>
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Room</TableCell>
-                  <TableCell>Capacity</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '20px' }}>Rooms</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold', fontSize: '20px' }}>Capacity</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -163,11 +176,11 @@ const RoomDetails = () => {
                       bgcolor:
                         selectedRoom?._id === r._id
                           ? '#b6f5b6'
-                          : 'inherit'
+                          : undefined
                     }}
                   >
-                    <TableCell>{r.roomName}</TableCell>
-                    <TableCell>{r.capacity}</TableCell>
+                    <TableCell sx={{ fontSize: '16px' }}>{r.roomName}</TableCell>
+                    <TableCell sx={{ fontSize: '16px' }}>{r.capacity}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -176,65 +189,84 @@ const RoomDetails = () => {
         </Box>
 
         {/* Detail & Booking */}
-        <Box flex={1}>
+        <Box flex={1} p={4} display="flex" flexDirection="column" alignItems="flex-start" sx={{ ml: { xs: 0, md: 'calc(150px + -80px)' } }}>
+          <Typography variant="h5" align="center" gutterBottom sx={{ fontSize: '26px', fontFamily: 'Roboto, sans-serif', ml: 60, fontWeight: 'bold' }}>Room Details</Typography>
           {selectedRoom.photoURL && (
-            <Box textAlign="center" mb={2}>
-              <img
-                src={selectedRoom.photoURL}
-                alt={selectedRoom.roomName}
-                style={{ maxWidth: '100%', borderRadius: 8 }}
-              />
-            </Box>
-          )}
-          {selectedRoom && (
-            <Paper sx={{ p: 3, borderRadius: 2 }}>
-              <Typography variant="h5" gutterBottom>
-                {selectedRoom.roomName}
-              </Typography>
-              <Typography mb={2}>
-                <strong>Building:</strong> {selectedRoom.building}<br />
-                <strong>Floor:</strong> {selectedRoom.floor}<br />
-                <strong>Capacity:</strong> up to {selectedRoom.capacity} people
-              </Typography>
-              
-              {selectedRoom.description && (
-                <Typography mb={2}>
-                  {selectedRoom.description}
-                </Typography>
-              )}
-
-              {/* Booking Form */}
-              <Box display="flex" flexDirection="column" gap={2}>
-                <TextField
-                  label="Date" name="date" type="date"
-                  InputLabelProps={{ shrink: true }}
-                  value={form.date} onChange={handleInput}
-                  error={!!errors.date}
-                  helperText={errors.date}
+            <Paper sx={{ p: 6, borderRadius: 4, bgcolor: '#ffffff', width: '100%', maxWidth: 1200 }}>
+              <Box display="flex" justifyContent="center">
+                <img
+                  src={selectedRoom.photoURL}
+                  alt={selectedRoom.roomName}
+                  style={{ width: '100%', maxWidth: 1200, borderRadius: 4, mb: 2 }}
                 />
-                <Box display="flex" gap={1}>
-                  <TextField
-                    label="From" name="from" type="time"
-                    InputLabelProps={{ shrink: true }}
-                    value={form.from} onChange={handleInput}
-                    fullWidth
-                  />
-                  <TextField
-                    label="To" name="to" type="time"
-                    InputLabelProps={{ shrink: true }}
-                    value={form.to} onChange={handleInput}
-                    fullWidth
-                  />
-                </Box>
-                <Button
-                  variant="contained"
-                  disabled={!canBook}
-                  onClick={handleBookClick}
-                  sx={{ bgcolor: '#7fd0f7' }}
-                >
-                  BOOK NOW
-                </Button>
               </Box>
+
+              {selectedRoom && (
+                <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} bgcolor="#e0e0e0" p={3} borderRadius={4}>
+                  <Box flex={1} pr={{ md: 3 }}>
+                    <Typography sx={{ fontWeight: 'bold', fontSize: '22px' }}>
+                      {selectedRoom.roomName}
+                    </Typography>
+                    <Typography sx={{ mb: 2, fontSize: '20px' }}>
+                      <strong>Building:</strong> {selectedRoom.building}<br />
+                      <strong>Floor:</strong> {selectedRoom.floor}<br />
+                      <strong>Capacity:</strong> up to {selectedRoom.capacity} people
+                    </Typography>
+
+
+                    {selectedRoom.description && (
+                      <Typography sx={{ mt: 4, maxWidth: '600px', fontSize: '16px' }}>
+                        {selectedRoom.description}
+                      </Typography>
+                    )}</Box>
+
+                  {/* Booking Form */}
+                  <Box
+                    bgcolor="#d0e9f7"
+                    p={3}
+                    borderRadius={6}
+                    display="flex"
+                    flexDirection="column"
+                    gap={2}
+                    alignItems="center"
+                    maxWidth={400}
+                    width="100%"
+                    mt={{ xs: 3, md: 0 }}
+                  >
+                    <TextField
+                      label="Start Date" name="date" type="date"
+                      InputLabelProps={{ shrink: true }}
+                      value={form.date} onChange={handleInput}
+                      error={!!errors.date}
+                      helperText={errors.date}
+                      fullWidth
+                    />
+                    <Box display="flex" gap={1} width="100%">
+                      <TextField
+                        label="From" name="from" type="time"
+                        InputLabelProps={{ shrink: true }}
+                        value={form.from} onChange={handleInput}
+                        fullWidth
+                      />
+                      <TextField
+                        label="To" name="to" type="time"
+                        InputLabelProps={{ shrink: true }}
+                        value={form.to} onChange={handleInput}
+                        fullWidth
+                      />
+                    </Box>
+                    <Button
+                      variant="contained"
+                      disabled={!canBook}
+                      onClick={handleBookClick}
+                      sx={{ bgcolor: '#7fd0f7', fontWeight: 'bold', color: '#222', mt: 1 }}
+                      fullWidth
+                    >
+                      BOOK NOW
+                    </Button>
+                  </Box>
+                </Box>
+              )}
             </Paper>
           )}
         </Box>
@@ -294,8 +326,9 @@ const RoomDetails = () => {
           <Button onClick={() => setBookingSuccess(false)}>OK</Button>
         </DialogActions>
       </Dialog>
-    </>
+    </div>
   );
 };
 
 export default RoomDetails;
+
