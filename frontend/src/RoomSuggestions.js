@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import * as dateFns from 'date-fns';
+
 import {
   Box,
   Typography,
@@ -82,7 +84,16 @@ const RoomSuggestions = () => {
   }, []);
 
   const handleRoomClick = (room) => {
-    navigate('/room-details', { state: { room, parsedResult }, });
+    // assuming `date`, `fromTime`, `toTime` are JS Date or ISO string already
+    navigate(`/room-details/${room._id}`, {
+      state: {
+        room,
+        // send them as ISO strings or whatever your detail page expects:
+        date: date?.toISOString().slice(0, 10),  // "YYYY-MM-DD"
+        from: dateFns.format(fromTime, 'HH:mm'),// "HH:mm"
+        to: dateFns.format(toTime, 'HH:mm'),
+      }
+    });
   };
 
   return (
