@@ -17,6 +17,7 @@ function App() {
                     <Route path="/homepage" element={<Homepage />} />
                     <Route path="/floor-plan" element={<Floorplan />} />
                     <Route path="/room-details" element={<RoomDetails />} />
+                    <Route path="/room-details/:roomName" element={<RoomDetails />} />
                     <Route path="/room-suggestions" element={<RoomSuggestions />} />
                     <Route path="*" element={<h2>Page Not Found</h2>} />
                 </Routes>

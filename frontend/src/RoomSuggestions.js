@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import * as dateFns from 'date-fns';
+
 import {
   Box,
   Typography,
@@ -81,8 +83,16 @@ const RoomSuggestions = () => {
     }
   }, []);
 
-  const handleRoomClick = (room) => {
-    navigate('/room-details', { state: { room, parsedResult }, });
+  const handleRoomClick = room => {
+    const name = encodeURIComponent(room.roomName);
+    navigate(`/room-details/${name}`, {
+      state: {
+        room,
+        date: date?.toISOString().slice(0, 10),
+        from: format(fromTime, 'HH:mm'),
+        to: format(toTime, 'HH:mm'),
+      }
+    });
   };
 
   return (
