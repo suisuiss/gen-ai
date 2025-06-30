@@ -15,7 +15,6 @@ import {
 } from "@mui/material";
 import {
   Home as HomeIcon,
-  Event as EventIcon,
   MeetingRoom as RoomIcon,
   Map as MapIcon
 } from "@mui/icons-material";
@@ -24,7 +23,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 export default function Header() {
   const pages = [
     { label: "Home", path: "/homepage", icon: <HomeIcon /> },
-    { label: "Schedule", path: "/schedule", icon: <EventIcon /> },
     { label: "Room Details", path: "/room-details", icon: <RoomIcon /> },
     { label: "Floor Plan", path: "/floor-plan", icon: <MapIcon /> }
   ];

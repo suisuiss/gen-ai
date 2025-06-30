@@ -20,21 +20,30 @@ const Floorplan = () => {
     }, []);
 
     const floorName = floor?.name;
+    const floorBuilding = floor?.building;
     const floorImage = floor?.image;
 
     return (
         <div>
-            <Header />
-            <div style={{ padding: '20px' }}>
-                <h1>{floorName}</h1>
-                <img
-                    src={floorImage}
-                    alt={floorName}
-                    style={{ width: '100%', maxWidth: '800px', height: 'auto' }}
-                />
-            </div>
+        <Header />
+        <div style={{ padding: '20px' }}>
+          {/* Başlık Ortalanmış */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+            <h1>{floorBuilding}</h1>
+            <h1>{floorName}</h1>
+          </div>
+    
+          {/* Görsel Ortalanmış */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+            <img
+              src={floorImage}
+              alt={floorName}
+              style={{ width: '100%', maxWidth: '800px', height: 'auto' }}
+            />
+          </div>
         </div>
-    );
-}
+      </div>
+      );
+    };
 
 export default Floorplan;

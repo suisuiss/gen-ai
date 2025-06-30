@@ -6,9 +6,9 @@ const Floor = require('../models/floor');
 // POST /api/floors - Create a new floor
 router.post('/floors', async (req, res) => {
     try {
-        const { name, image } = req.body;
+        const { name, building, image } = req.body;
         // Create a new Floor document
-        const newFloor = new Floor({ name, image });
+        const newFloor = new Floor({ name, building, image });
         await newFloor.save();
         res.status(201).json(newFloor);
     } catch (error) {
