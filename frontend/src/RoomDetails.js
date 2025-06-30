@@ -1,4 +1,4 @@
-// src/components/RoomDetails.jsx
+
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
 import dayjs from 'dayjs';
@@ -10,15 +10,12 @@ import {
   TableCell, TableContainer, TableHead,
   TableRow
 } from '@mui/material';
+import { useParams, useLocation } from 'react-router-dom'; 
 
 const RoomDetails = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [form, setForm] = useState({
-    date: dayjs().format('YYYY-MM-DD'),
-    from: '', to: ''
-  });
+
   const [errors, setErrors] = useState({ date: '', time: '' });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
@@ -26,7 +23,19 @@ const RoomDetails = () => {
   const [bookingErrorOpen, setBookingError] = useState(false);
   const [bookingErrorMsg, setBookingErrorMsg] = useState('');
   const [bookingSuccessOpen, setBookingSuccess] = useState(false);
+  const { roomId } = useParams();
+  const { state } = useLocation();
+  const incomingRoom = state?.room;
+  const incomingDate = state?.date;
+  const incomingFrom = state?.from;
+  const incomingTo = state?.to;
 
+  const [form, setForm] = useState({
+    date: incomingDate || dayjs().format('YYYY-MM-DD'),
+    from: incomingFrom || '',
+    to: incomingTo || ''
+  });
+  const [selectedRoom, setSelectedRoom] = useState(incomingRoom || null);
   // Utility: fetch all rooms from the backend
   async function loadRooms() {
     const res = await fetch('/api/detail');

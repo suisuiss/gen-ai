@@ -26,7 +26,7 @@ export default function Header() {
     { label: "Room Details", path: "/room-details", icon: <RoomIcon /> },
     { label: "Floor Plan", path: "/floor-plan", icon: <MapIcon /> }
   ];
-
+  
   const navigate = useNavigate();
   const location = useLocation();
   const currentTab = pages.findIndex((p) => p.path === location.pathname);
