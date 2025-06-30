@@ -83,15 +83,14 @@ const RoomSuggestions = () => {
     }
   }, []);
 
-  const handleRoomClick = (room) => {
-    // assuming `date`, `fromTime`, `toTime` are JS Date or ISO string already
-    navigate(`/room-details/${room._id}`, {
+  const handleRoomClick = room => {
+    const name = encodeURIComponent(room.roomName);
+    navigate(`/room-details/${name}`, {
       state: {
         room,
-        // send them as ISO strings or whatever your detail page expects:
-        date: date?.toISOString().slice(0, 10),  // "YYYY-MM-DD"
-        from: dateFns.format(fromTime, 'HH:mm'),// "HH:mm"
-        to: dateFns.format(toTime, 'HH:mm'),
+        date: date?.toISOString().slice(0, 10),
+        from: format(fromTime, 'HH:mm'),
+        to: format(toTime, 'HH:mm'),
       }
     });
   };
