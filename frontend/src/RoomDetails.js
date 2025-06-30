@@ -59,7 +59,14 @@ const RoomDetails = () => {
       setLoading(true);
       try {
         const data = await loadRooms();
-        if (data.length) setSelectedRoom(data[0]);
+
+        // Try to re-select incomingRoom if exists
+        if (incomingRoom) {
+          const matched = data.find(r => r.roomName === incomingRoom.roomName);
+          setSelectedRoom(matched || data[0] || null);
+        } else {
+          setSelectedRoom(data[0] || null);
+        }
       } catch (e) {
         console.error('Failed to load rooms', e);
       } finally {
@@ -67,6 +74,7 @@ const RoomDetails = () => {
       }
     })();
   }, []);
+  
 
   // 2) Handle form inputs
   const handleInput = e => {
