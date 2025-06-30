@@ -18,12 +18,15 @@ const getAvailableRooms = async ({ date, from, to, capacity, equipment }) => {
   const requestedEnd = new Date(to);
 
   console.log('Incoming request:', { date, from, to, capacity, equipment });
-  console.log("Incoming equipment type:", typeof equipment, equipment);
 
 
   // Step 1: Find rooms that match capacity and include the equipment
+  // Normalize equipment to always be an array
+  if (!Array.isArray(equipment)) {
+    equipment = [equipment];
+  }
   // Convert all equipment values to lowercase
-    const normalizedEquipment = equipment.map(item => item.toLowerCase());
+  const normalizedEquipment = equipment.map(item => item.toLowerCase());
   const matchingRooms = await Room.find({
     capacity: { $gte: capacity },
     equipment: { $all: normalizedEquipment }, // Ensures all requested equipment is included

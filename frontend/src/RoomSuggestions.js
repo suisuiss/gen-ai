@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -29,6 +29,7 @@ const RoomSuggestions = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [conflict, setConflict] = useState(false);
+  const [searched, setSearched] = useState(false); // NEW
 
   const fetchAvailableRooms = async () => {
     if (!date || !fromTime || !toTime) return;
@@ -36,6 +37,7 @@ const RoomSuggestions = () => {
     setLoading(true);
     setConflict(false);
     setRooms([]);
+    setSearched(true); // NEW
 
     try {
       const formattedDate = format(date, 'yyyy-MM-dd');
@@ -45,7 +47,6 @@ const RoomSuggestions = () => {
       console.log('Sending request to backend:', {
         formattedDate, formattedFrom, formattedTo, capacity, equipment
       });
-
 
       const response = await fetch('/api/rooms/available', {
         method: 'POST',
@@ -72,6 +73,13 @@ const RoomSuggestions = () => {
       setLoading(false);
     }
   };
+
+  // Automatically fetch suggestions when parsedResult is available
+  useEffect(() => {
+    if (parsedResult.date && parsedResult.starttime && parsedResult.endtime) {
+      fetchAvailableRooms();
+    }
+  }, []);
 
   const handleRoomClick = (room) => {
     navigate('/room-details', { state: { room, parsedResult }, });
@@ -169,9 +177,9 @@ const RoomSuggestions = () => {
               </Card>
             ))}
           </Box>
-        ) : (
+        ) : searched ? (
           <Typography>No rooms available for the selected criteria</Typography>
-        )}
+        ) : null}
       </Box>
     </LocalizationProvider>
   );
