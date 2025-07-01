@@ -123,7 +123,8 @@ const HomePage = () => {
                 multiline
                 minRows={4}
                 variant="standard"
-                placeholder="Find a room for Monday 3pm, with whiteboard"
+                placeholder="Find a room for next Monday, 3–5pm, 10 people, with whiteboard and projector
+"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 InputProps={{ disableUnderline: true }}
