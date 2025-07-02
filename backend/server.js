@@ -7,6 +7,8 @@ const signinRoutes = require('./routes/signin');
 const llmRoutes = require('./routes/llm');
 const floorRoutes = require('./routes/floor');
 const roomsRoute = require('./routes/roomsuggestions');
+const DetailRoute = require('./routes/roomDetail');
+const bookingRoutes = require('./routes/booking');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -41,7 +43,8 @@ app.use('/api', signupRoutes);
 app.use('/api', signinRoutes);
 app.use('/api', floorRoutes);
 app.use('/api/rooms', roomsRoute);
-
+app.use('/api/detail', DetailRoute);
+app.use('/api/bookings', bookingRoutes);
 
 // Use the LLM routes
 app.use('/api/llm', llmRoutes);
