@@ -1,4 +1,3 @@
-// src/components/RoomDetails.jsx
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
 import dayjs from 'dayjs';
@@ -10,15 +9,15 @@ import {
   TableCell, TableContainer, TableHead,
   TableRow
 } from '@mui/material';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker, TimePicker } from '@mui/x-date-pickers';
 
 const RoomDetails = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [form, setForm] = useState({
-    date: dayjs().format('YYYY-MM-DD'),
-    from: '', to: ''
-  });
+  const navigate = useNavigate();
   const [errors, setErrors] = useState({ date: '', time: '' });
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
@@ -26,7 +25,26 @@ const RoomDetails = () => {
   const [bookingErrorOpen, setBookingError] = useState(false);
   const [bookingErrorMsg, setBookingErrorMsg] = useState('');
   const [bookingSuccessOpen, setBookingSuccess] = useState(false);
+  const { roomId } = useParams();
+  const { state } = useLocation();
+  const incomingRoom = state?.room;
+  const incomingDate = state?.date;
+  const incomingFrom = state?.from;
+  const incomingTo = state?.to;
 
+  const [form, setForm] = useState({
+    date: incomingDate
+      ? dayjs(incomingDate, 'YYYY-MM-DD')
+      : null,
+    from: incomingFrom
+      ? dayjs(incomingFrom, 'HH:mm')
+      : null,
+    to: incomingTo
+      ? dayjs(incomingTo, 'HH:mm')
+      : null,
+  });
+
+  const [selectedRoom, setSelectedRoom] = useState(incomingRoom || null);
   // Utility: fetch all rooms from the backend
   async function loadRooms() {
     const res = await fetch('/api/detail');
@@ -41,7 +59,14 @@ const RoomDetails = () => {
       setLoading(true);
       try {
         const data = await loadRooms();
-        if (data.length) setSelectedRoom(data[0]);
+
+        // Try to re-select incomingRoom if exists
+        if (incomingRoom) {
+          const matched = data.find(r => r.roomName === incomingRoom.roomName);
+          setSelectedRoom(matched || data[0] || null);
+        } else {
+          setSelectedRoom(data[0] || null);
+        }
       } catch (e) {
         console.error('Failed to load rooms', e);
       } finally {
@@ -49,6 +74,7 @@ const RoomDetails = () => {
       }
     })();
   }, []);
+  
 
   // 2) Handle form inputs
   const handleInput = e => {
@@ -58,43 +84,66 @@ const RoomDetails = () => {
 
   // 3) Enable BOOK NOW only when date, from, to are set
   const canBook =
-    form.date.trim() !== '' &&
-    form.from.trim() !== '' &&
-    form.to.trim() !== '';
-
+    form.date?.isValid() &&
+    form.from?.isValid() &&
+    form.to?.isValid();
   // 4) On BOOK NOW click: validate date/time
   const handleBookClick = () => {
+    // 1) convert user’s picks into old format
+    const oldDate = form.date.format('YYYY-MM-DD');
+    const oldFrom = form.from.format('HH:mm');
+    const oldTo = form.to.format('HH:mm');
+
+    // 2) plug oldDate/oldFrom/oldTo into your current validation
     const now = dayjs();
-    const dateStamp = dayjs(form.date);
-    const startStamp = dayjs(`${form.date}T${form.from}`);
-    const endStamp = dayjs(`${form.date}T${form.to}`);
+    const dateStamp = dayjs(oldDate);
+    const startStamp = dayjs(`${oldDate}T${oldFrom}`);
+    const endStamp = dayjs(`${oldDate}T${oldTo}`);
+
     const errs = { date: '', time: '' };
     let ok = true;
-
     if (!dateStamp.isValid() || startStamp.isBefore(now)) {
       errs.date = 'Selected start time is in the past';
       ok = false;
     }
-
     if (!endStamp.isAfter(startStamp)) {
       errs.time = 'End time must be after start time';
       ok = false;
     }
-    
 
     setErrors(errs);
-
     if (!ok) {
       setErrorMsg(errs.date || errs.time);
       setErrorOpen(true);
-    } else {
-      setConfirmOpen(true);
+      return;
     }
+
+    // 3) update form to the old-string version so confirmDialog + confirmBooking
+    //    and your existing API call can just `form.date`, `form.from`, `form.to`
+    setForm({
+      date: dayjs(oldDate, 'YYYY-MM-DD'),
+      from: dayjs(oldFrom, 'HH:mm'),
+      to: dayjs(oldTo, 'HH:mm')
+    });
+
+    setConfirmOpen(true);
   };
+
 
   // 5) On Confirm: POST to booking endpoint, then reload rooms & keep selection
   const confirmBooking = async () => {
     setConfirmOpen(false);
+    const payload = {
+      date: form.date.format('YYYY-MM-DD'),
+      from: form.from.format('HH:mm'),
+      to: form.to.format('HH:mm'),
+    };
+
+    const res = await fetch(`/api/bookings/${selectedRoom._id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
     try {
       const res = await fetch(
         `/api/bookings/${selectedRoom._id}`,
@@ -231,52 +280,55 @@ const RoomDetails = () => {
                     )}</Box>
 
                   {/* Booking Form */}
-                  <Box
-                    bgcolor="#d0e9f7"
-                    p={3}
-                    borderRadius={6}
-                    display="flex"
-                    flexDirection="column"
-                    gap={2}
-                    alignItems="center"
-                    maxWidth={400}
-                    width="100%"
-                    mt={{ xs: 3, md: 0 }}
-                  >
-                    <TextField
-                      label="Start Date" name="date" type="date"
-                      InputLabelProps={{ shrink: true }}
-                      value={form.date} onChange={handleInput}
-                      error={!!errors.date}
-                      helperText={errors.date}
-                      fullWidth
-                    />
-                    <Box display="flex" gap={1} width="100%">
-                      <TextField
-                        label="From" name="from" type="time"
-                        InputLabelProps={{ shrink: true }}
-                        value={form.from} onChange={handleInput}
-                        fullWidth
-                      />
-                      <TextField
-                        label="To" name="to" type="time"
-                        InputLabelProps={{ shrink: true }}
-                        value={form.to} onChange={handleInput}
-                        fullWidth
-                        error={!!errors.time}
-                        helperText={errors.time}
-                      />
-                    </Box>
-                    <Button
-                      variant="contained"
-                      disabled={!canBook}
-                      onClick={handleBookClick}
-                      sx={{ bgcolor: '#7fd0f7', fontWeight: 'bold', color: '#222', mt: 1 }}
-                      fullWidth
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <Box
+                      bgcolor="#d0e9f7"
+                      p={3}
+                      borderRadius={6}
+                      display="flex"
+                      flexDirection="column"
+                      gap={2}
+                      alignItems="stretch"
+                      maxWidth={400}
+                      width="100%"
+                      mt={{ xs: 3, md: 0 }}
                     >
-                      BOOK NOW
-                    </Button>
-                  </Box>
+                      <DatePicker
+                        label="Start Date"
+                        inputFormat="MM/DD/YYYY"
+                        value={form.date}
+                        onChange={d => setForm(f => ({ ...f, date: d }))}
+                        renderInput={params => <TextField {...params} fullWidth />}
+                      />
+                      <Box display="flex" gap={1} width="100%">
+                        <TimePicker
+                          label="From"
+                          ampm
+                          inputFormat="hh:mm A"
+                          value={form.from}
+                          onChange={t => t && setForm(f => ({ ...f, from: t }))}
+                          renderInput={params => <TextField {...params} fullWidth />}
+                        />
+                        <TimePicker
+                          label="To"
+                          ampm
+                          inputFormat="hh:mm A"
+                          value={form.to}
+                          onChange={t => t && setForm(f => ({ ...f, to: t }))}
+                          renderInput={params => <TextField {...params} fullWidth />}
+                        />
+                      </Box>
+                      <Button
+                        variant="contained"
+                        disabled={!canBook}
+                        onClick={handleBookClick}
+                        sx={{ bgcolor: '#7fd0f7', fontWeight: 'bold', color: '#222', mt: 1 }}
+                        fullWidth
+                      >
+                        BOOK NOW
+                      </Button>
+                    </Box>
+                  </LocalizationProvider>
                 </Box>
               )}
             </Paper>
@@ -301,9 +353,9 @@ const RoomDetails = () => {
         <DialogContent>
           <DialogContentText>
             You’re booking <strong>{selectedRoom?.roomName}</strong> on{' '}
-            <strong>{form.date}</strong> from{' '}
-            <strong>{form.from}</strong> to{' '}
-            <strong>{form.to}</strong>.
+            <strong>{form.date?.format('MM/DD/YYYY') ?? ''}</strong> from{' '}
+            <strong>{form.from?.format('hh:mm A') ?? ''}</strong> to{' '}
+            <strong>{form.to?.format('hh:mm A') ?? ''}</strong>.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -329,13 +381,13 @@ const RoomDetails = () => {
         <DialogContent>
           <DialogContentText>
             Your booking for <strong>{selectedRoom?.roomName}</strong> on{' '}
-            <strong>{form.date}</strong> from{' '}
-            <strong>{form.from}</strong> to{' '}
-            <strong>{form.to}</strong> is confirmed.
+            <strong>{form.date?.format('MM/DD/YYYY') ?? ''}</strong> from{' '}
+            <strong>{form.from?.format('hh:mm A') ?? ''}</strong> to{' '}
+            <strong>{form.to?.format('hh:mm A') ?? ''}</strong> is confirmed.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setBookingSuccess(false)}>OK</Button>
+          <Button onClick={() => {setBookingSuccess(false); navigate('/homepage');  }}>OK</Button>
         </DialogActions>
       </Dialog>
     </div>

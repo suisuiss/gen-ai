@@ -1,7 +1,7 @@
 // routes/bookings.js
 const express = require('express');
 const router = express.Router();
-const Room = require('../models/room');
+const Room = require('../models/rooms');
 
 // Helper to detect overlap
 function overlaps(b, date, from, to) {
