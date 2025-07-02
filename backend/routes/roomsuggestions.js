@@ -12,16 +12,15 @@ async function getAvailableRooms({ date, from, to, capacity, equipment }) {
   const requestedEnd = new Date(to);
 
   // normalize equipment → array of lowercase strings
-  const eqList = (Array.isArray(equipment) ? equipment : [equipment] || [])
+  const eqList = (Array.isArray(equipment) ? equipment : [equipment])
     .filter(Boolean)
-    .map(e => e.toLowerCase());
+    .map(e => new RegExp(`^${e}$`, 'i'));
 
-  // 1) find all rooms matching capacity/equipment/active
   const matchingRooms = await Room.find({
-    status: 'active',
     capacity: { $gte: capacity },
     equipment: { $all: eqList }
   });
+
 
   // 2) filter out any room that has at least one embedded booking on "date"
   //    whose time-window overlaps [requestedStart, requestedEnd)
