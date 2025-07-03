@@ -45,7 +45,13 @@ const RoomSuggestions = () => {
       const formattedDate = format(date, 'yyyy-MM-dd');
       const formattedFrom = new Date(`${formattedDate}T${format(fromTime, 'HH:mm')}:00`).toISOString();
       const formattedTo = new Date(`${formattedDate}T${format(toTime, 'HH:mm')}:00`).toISOString();
-
+      const eqList = typeof equipment === 'string'
+        ? equipment
+          .toLowerCase()
+          .split(/\s*(?:,|and)\s*/)   // split on comma or "and"
+          .map(e => e.trim())
+          .filter(Boolean)
+        : equipment; 
       console.log('Sending request to backend:', {
         formattedDate, formattedFrom, formattedTo, capacity, equipment
       });
@@ -58,7 +64,7 @@ const RoomSuggestions = () => {
           from: formattedFrom,
           to: formattedTo,
           capacity,
-          equipment,
+          equipment: eqList
         }),
       });
 
