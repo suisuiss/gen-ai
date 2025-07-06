@@ -12,6 +12,7 @@ import {
   CardContent,
   CardMedia,
   Button,
+  Chip,
 } from '@mui/material';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -32,7 +33,7 @@ const RoomSuggestions = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [conflict, setConflict] = useState(false);
-  const [searched, setSearched] = useState(false); // NEW
+  const [searched, setSearched] = useState(false);
 
   const fetchAvailableRooms = async () => {
     if (!date || !fromTime || !toTime) return;
@@ -40,7 +41,7 @@ const RoomSuggestions = () => {
     setLoading(true);
     setConflict(false);
     setRooms([]);
-    setSearched(true); // NEW
+    setSearched(true);
 
     try {
       const formattedDate = format(date, 'yyyy-MM-dd');
@@ -49,13 +50,10 @@ const RoomSuggestions = () => {
       const eqList = typeof equipment === 'string'
         ? equipment
           .toLowerCase()
-          .split(/\s*(?:,|and)\s*/)   // split on comma or "and"
+          .split(/\s*(?:,|and)\s*/)
           .map(e => e.trim())
           .filter(Boolean)
-        : equipment; 
-      console.log('Sending request to backend:', {
-        formattedDate, formattedFrom, formattedTo, capacity, equipment
-      });
+        : equipment;
 
       const response = await fetch('/api/rooms/available', {
         method: 'POST',
@@ -83,7 +81,6 @@ const RoomSuggestions = () => {
     }
   };
 
-  // Automatically fetch suggestions when parsedResult is available
   useEffect(() => {
     if (parsedResult.date && parsedResult.starttime && parsedResult.endtime) {
       fetchAvailableRooms();
@@ -106,61 +103,82 @@ const RoomSuggestions = () => {
     <>
       <Header />
       <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <Box p={3}>
-          <Typography variant="h6" gutterBottom>
-            Room booking suggestions based on your requirements:
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={2}>
-              <DatePicker
-                label="Date"
-                value={date}
-                onChange={setDate}
-                renderInput={(params) => <TextField fullWidth {...params} />}
-              />
-            </Grid>
-            <Grid item xs={12} sm={2}>
-              <TimePicker
-                label="From"
-                value={fromTime}
-                onChange={setFromTime}
-                renderInput={(params) => <TextField fullWidth {...params} />}
-              />
-            </Grid>
-            <Grid item xs={12} sm={2}>
-              <TimePicker
-                label="To"
-                value={toTime}
-                onChange={setToTime}
-                renderInput={(params) => <TextField fullWidth {...params} />}
-              />
-            </Grid>
-            <Grid item xs={12} sm={2}>
-              <TextField
-                label="Capacity"
-                type="number"
-                value={capacity}
-                onChange={(e) => setCapacity(e.target.value)}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <TextField
-                label="Equipment"
-                value={equipment}
-                onChange={(e) => setEquipment(e.target.value)}
-                fullWidth
-              />
-            </Grid>
-          </Grid>
+        <Box p={3} sx={{ backgroundColor: '#fafafa', minHeight: '100vh' }}>
 
-          <Box mt={2}>
-            <Button variant="contained" onClick={fetchAvailableRooms}>
-              Get Room Suggestions
+          {/* --- Filter Section --- */}
+          <Typography variant="h5" fontWeight="bold" gutterBottom>
+            Filter Criteria
+          </Typography>
+
+          <Box mt={3} mb={4}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={2}>
+                <DatePicker
+                  label="Date"
+                  value={date}
+                  onChange={setDate}
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <TimePicker
+                  label="From"
+                  value={fromTime}
+                  onChange={setFromTime}
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <TimePicker
+                  label="To"
+                  value={toTime}
+                  onChange={setToTime}
+                  renderInput={(params) => <TextField fullWidth {...params} />}
+                />
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <TextField
+                  label="Capacity"
+                  type="number"
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  label="Equipment"
+                  value={equipment}
+                  onChange={(e) => setEquipment(e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+          </Box>
+
+          <Box mb={5}>
+            <Button
+              variant="contained"
+              sx={{
+                px: 4,
+                py: 2,
+                fontSize: '1rem',
+                backgroundColor: '#31689e',
+                '&:hover': {
+                  backgroundColor: '#26527d',
+                },
+              }}
+              onClick={fetchAvailableRooms}
+            >
+              FIND ROOM SUGGESTIONS
             </Button>
           </Box>
 
-          <Divider sx={{ my: 3 }} />
+          {/* --- Results Section --- */}
+          <Typography variant="h5" fontWeight="bold" gutterBottom>
+            Results
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
 
           {loading ? (
             <Typography>Loading available rooms...</Typography>
@@ -173,7 +191,14 @@ const RoomSuggestions = () => {
               {rooms.map((room) => (
                 <Card
                   key={room.roomName}
-                  sx={{ display: 'flex', my: 2, bgcolor: '#f3f3f3', cursor: 'pointer' }}
+                  sx={{
+                    display: 'flex',
+                    my: 2,
+                    bgcolor: '#f5f5f5',
+                    cursor: 'pointer',
+                    transition: '0.3s',
+                    '&:hover': { boxShadow: 4 }
+                  }}
                   onClick={() => handleRoomClick(room)}
                 >
                   <CardMedia
@@ -182,17 +207,49 @@ const RoomSuggestions = () => {
                     image={room.imageUrl}
                     alt={room.roomName}
                   />
-                  <CardContent>
-                    <Typography variant="h5">{room.roomName}</Typography>
-                    <Typography variant="body1">Type: {room.roomType}</Typography>
-                    <Typography variant="body1">Capacity: {room.capacity}</Typography>
-                    <Typography variant="body2">Equipment:</Typography>
-                    <ul>
-                      {room.equipment.map((eq, index) => (
-                        <li key={index}>{eq}</li>
-                      ))}
-                    </ul>
-                  </CardContent>
+                <CardContent sx={{ flex: 1, px: 3, py: 2 }}>
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      width: '100%',
+    }}
+  >
+    {/* Left: Room Info */}
+    <Box sx={{ textAlign: 'left', minWidth: 250 }}>
+      <Typography variant="h5" fontWeight="bold">
+        {room.roomName}
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mt: 0.5 }}>
+        Type: {room.roomType}
+      </Typography>
+      <Typography variant="body1" color="text.secondary">
+        Capacity: {room.capacity}
+      </Typography>
+    </Box>
+
+    {/* Equipment Section (moved slightly left, still spaced) */}
+    <Box
+      sx={{
+        ml: 8, // adjusts how far from left side (experiment with 6–10)
+        flexGrow: 1,
+        textAlign: 'left',
+      }}
+    >
+      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+        Equipment
+      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {room.equipment.map((eq, index) => (
+          <Chip key={index} label={eq} variant="outlined" size="medium" />
+        ))}
+      </Box>
+    </Box>
+  </Box>
+</CardContent>
+
+
                 </Card>
               ))}
             </Box>
@@ -206,4 +263,3 @@ const RoomSuggestions = () => {
 };
 
 export default RoomSuggestions;
-
