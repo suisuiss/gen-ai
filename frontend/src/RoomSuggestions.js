@@ -173,7 +173,7 @@ const RoomSuggestions = () => {
 
             {/* Results */}
             <Typography variant="h6" fontWeight="bold" gutterBottom>
-              Results
+              Room suggestions
             </Typography>
             {loading ? (
               <Typography>Loading available rooms...</Typography>
