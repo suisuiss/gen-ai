@@ -5,7 +5,6 @@ import SignUpSide from "./SignUpSide";
 import Homepage from './Homepage';
 import Floorplan from './floorplan';
 import RoomDetails from './RoomDetails';
-import Schedule from './Schedule';
 import RoomSuggestions from './RoomSuggestions';
 
 function App() {
@@ -18,7 +17,7 @@ function App() {
                     <Route path="/homepage" element={<Homepage />} />
                     <Route path="/floor-plan" element={<Floorplan />} />
                     <Route path="/room-details" element={<RoomDetails />} />
-                    <Route path="/schedule" element={<Schedule />} />
+                    <Route path="/room-details/:roomName" element={<RoomDetails />} />
                     <Route path="/room-suggestions" element={<RoomSuggestions />} />
                     <Route path="*" element={<h2>Page Not Found</h2>} />
                 </Routes>
