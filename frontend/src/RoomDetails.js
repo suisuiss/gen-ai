@@ -9,7 +9,7 @@ import {
   TableCell, TableContainer, TableHead,
   TableRow
 } from '@mui/material';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker, TimePicker } from '@mui/x-date-pickers';
@@ -25,7 +25,6 @@ const RoomDetails = () => {
   const [bookingErrorOpen, setBookingError] = useState(false);
   const [bookingErrorMsg, setBookingErrorMsg] = useState('');
   const [bookingSuccessOpen, setBookingSuccess] = useState(false);
-  const { roomId } = useParams();
   const { state } = useLocation();
   const incomingRoom = state?.room;
   const incomingDate = state?.date;
@@ -33,15 +32,9 @@ const RoomDetails = () => {
   const incomingTo = state?.to;
 
   const [form, setForm] = useState({
-    date: incomingDate
-      ? dayjs(incomingDate, 'YYYY-MM-DD')
-      : null,
-    from: incomingFrom
-      ? dayjs(incomingFrom, 'HH:mm')
-      : null,
-    to: incomingTo
-      ? dayjs(incomingTo, 'HH:mm')
-      : null,
+    date: incomingDate ? dayjs(incomingDate, 'YYYY-MM-DD') : null,
+    from: incomingFrom ? dayjs(`${incomingDate}T${incomingFrom}`) : null,
+    to: incomingTo ? dayjs(`${incomingDate}T${incomingTo}`) : null,
   });
 
   const [selectedRoom, setSelectedRoom] = useState(incomingRoom || null);
@@ -75,12 +68,6 @@ const RoomDetails = () => {
     })();
   }, []);
   
-
-  // 2) Handle form inputs
-  const handleInput = e => {
-    const { name, value } = e.target;
-    setForm(f => ({ ...f, [name]: value }));
-  };
 
   // 3) Enable BOOK NOW only when date, from, to are set
   const canBook =

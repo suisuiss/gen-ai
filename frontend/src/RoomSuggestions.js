@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import * as dateFns from 'date-fns';
-
 import {
   Box,
   Typography,
   TextField,
-  Divider,
   Grid,
   Card,
   CardContent,
   CardMedia,
   Button,
+  Chip,
+  Paper,
 } from '@mui/material';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useLocation, useNavigate } from 'react-router-dom';
 import format from 'date-fns/format';
+import Header from './Header';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import GroupIcon from '@mui/icons-material/Group';
+
+const inputHeight = { '& .MuiInputBase-root': { height: '56px' } };
 
 const RoomSuggestions = () => {
   const location = useLocation();
@@ -31,39 +35,29 @@ const RoomSuggestions = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [conflict, setConflict] = useState(false);
-  const [searched, setSearched] = useState(false); // NEW
+  const [searched, setSearched] = useState(false);
 
   const fetchAvailableRooms = async () => {
     if (!date || !fromTime || !toTime) return;
-
     setLoading(true);
     setConflict(false);
     setRooms([]);
-    setSearched(true); // NEW
-
+    setSearched(true);
     try {
       const formattedDate = format(date, 'yyyy-MM-dd');
       const formattedFrom = new Date(`${formattedDate}T${format(fromTime, 'HH:mm')}:00`).toISOString();
       const formattedTo = new Date(`${formattedDate}T${format(toTime, 'HH:mm')}:00`).toISOString();
-
-      console.log('Sending request to backend:', {
-        formattedDate, formattedFrom, formattedTo, capacity, equipment
-      });
+      const eqList = typeof equipment === 'string'
+        ? equipment.toLowerCase().split(/\s*(?:,|and)\s*/).map(e => e.trim()).filter(Boolean)
+        : equipment;
 
       const response = await fetch('/api/rooms/available', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date: formattedDate,
-          from: formattedFrom,
-          to: formattedTo,
-          capacity,
-          equipment,
-        }),
+        body: JSON.stringify({ date: formattedDate, from: formattedFrom, to: formattedTo, capacity, equipment: eqList }),
       });
 
       const data = await response.json();
-
       if (data.message === 'Booking conflict. No rooms available.') {
         setConflict(true);
       } else {
@@ -76,12 +70,11 @@ const RoomSuggestions = () => {
     }
   };
 
-  // Automatically fetch suggestions when parsedResult is available
   useEffect(() => {
     if (parsedResult.date && parsedResult.starttime && parsedResult.endtime) {
       fetchAvailableRooms();
     }
-  }, []);
+  }, [parsedResult.date, parsedResult.starttime, parsedResult.endtime]);
 
   const handleRoomClick = room => {
     const name = encodeURIComponent(room.roomName);
@@ -96,102 +89,152 @@ const RoomSuggestions = () => {
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box p={3}>
-        <Typography variant="h6" gutterBottom>
-          Room booking suggestions based on your requirements:
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={2}>
-            <DatePicker
-              label="Date"
-              value={date}
-              onChange={setDate}
-              renderInput={(params) => <TextField fullWidth {...params} />}
-            />
-          </Grid>
-          <Grid item xs={12} sm={2}>
-            <TimePicker
-              label="From"
-              value={fromTime}
-              onChange={setFromTime}
-              renderInput={(params) => <TextField fullWidth {...params} />}
-            />
-          </Grid>
-          <Grid item xs={12} sm={2}>
-            <TimePicker
-              label="To"
-              value={toTime}
-              onChange={setToTime}
-              renderInput={(params) => <TextField fullWidth {...params} />}
-            />
-          </Grid>
-          <Grid item xs={12} sm={2}>
-            <TextField
-              label="Capacity"
-              type="number"
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <TextField
-              label="Equipment"
-              value={equipment}
-              onChange={(e) => setEquipment(e.target.value)}
-              fullWidth
-            />
-          </Grid>
-        </Grid>
+    <>
+      <Header />
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <Box sx={{ backgroundColor: '#f4f4f4', minHeight: '100vh', py: 4 }}>
+          <Box maxWidth="1000px" mx="auto">
 
-        <Box mt={2}>
-          <Button variant="contained" onClick={fetchAvailableRooms}>
-            Get Room Suggestions
-          </Button>
-        </Box>
+            {/* Filter Section */}
+            <Paper elevation={3} sx={{ px: 4, py: 4, mb: 8 }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+                Filter Criteria
+              </Typography>
 
-        <Divider sx={{ my: 3 }} />
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <DatePicker
+                    label="Date"
+                    value={date}
+                    onChange={setDate}
+                    slotProps={{
+                      textField: { fullWidth: true, sx: inputHeight }
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TimePicker
+                    label="From"
+                    value={fromTime}
+                    onChange={setFromTime}
+                    slotProps={{
+                      textField: { fullWidth: true, sx: inputHeight }
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TimePicker
+                    label="To"
+                    value={toTime}
+                    onChange={setToTime}
+                    slotProps={{
+                      textField: { fullWidth: true, sx: inputHeight }
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    label="Capacity"
+                    value={capacity}
+                    onChange={(e) => setCapacity(e.target.value)}
+                    fullWidth
+                    sx={inputHeight}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={9}>
+                  <TextField
+                    label="Equipment"
+                    value={equipment}
+                    onChange={(e) => setEquipment(e.target.value)}
+                    fullWidth
+                    sx={inputHeight}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="flex-end">
+                  <Button
+                    variant="contained"
+                    sx={{
+                      backgroundColor: '#3c6e9e',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      py: 1.5,
+                      px: 4,
+                      height: '56px',
+                      '&:hover': { backgroundColor: '#325b82' },
+                      width: '100%'
+                    }}
+                    onClick={fetchAvailableRooms}
+                  >
+                    ROOM SUGGESTIONS
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
 
-        {loading ? (
-          <Typography>Loading available rooms...</Typography>
-        ) : conflict ? (
-          <Typography color="error">
-            There is a conflict with previous bookings. Please select a different time slot.
-          </Typography>
-        ) : rooms.length > 0 ? (
-          <Box sx={{ maxHeight: 500, overflowY: 'auto' }}>
-            {rooms.map((room) => (
-              <Card
-                key={room.roomName}
-                sx={{ display: 'flex', my: 2, bgcolor: '#f3f3f3', cursor: 'pointer' }}
-                onClick={() => handleRoomClick(room)}
-              >
-                <CardMedia
-                  component="img"
-                  sx={{ width: 250 }}
-                  image={room.imageUrl}
-                  alt={room.roomName}
-                />
-                <CardContent>
-                  <Typography variant="h5">{room.roomName}</Typography>
-                  <Typography variant="body1">Type: {room.roomType}</Typography>
-                  <Typography variant="body1">Capacity: {room.capacity}</Typography>
-                  <Typography variant="body2">Equipment:</Typography>
-                  <ul>
-                    {room.equipment.map((eq, index) => (
-                      <li key={index}>{eq}</li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
+            {/* Results */}
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Room suggestions
+            </Typography>
+            {loading ? (
+              <Typography>Loading available rooms...</Typography>
+            ) : conflict ? (
+              <Typography color="error">There is a conflict with previous bookings. Please select a different time slot.</Typography>
+            ) : rooms.length > 0 ? (
+              rooms.map((room) => (
+                <Card
+                  key={room.roomName}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    my: 2,
+                    px: 2,
+                    py: 2,
+                    bgcolor: '#fafafa',
+                    cursor: 'pointer',
+                    '&:hover': { boxShadow: 4 }
+                  }}
+                  onClick={() => handleRoomClick(room)}
+                >
+                  <CardMedia
+                    component="img"
+                    sx={{ width: 180, height: 140, objectFit: 'cover', borderRadius: 1 }}
+                    image={room.imageUrl}
+                    alt={room.roomName}
+                  />
+                  <CardContent sx={{ flex: 1 }}>
+                    <Grid container spacing={10}>
+                      <Grid item xs={12} sm={4}>
+                        <Typography variant="h6">{room.roomName}</Typography>
+                        <Box display="flex" alignItems="center" mt={1}>
+                          <MeetingRoomIcon fontSize="small" sx={{ mr: 1 }} />
+                          <Typography variant="body2">{room.roomType}</Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" mt={0.5}>
+                          <GroupIcon fontSize="small" sx={{ mr: 1 }} />
+                          <Typography variant="body2">Capacity: {room.capacity}</Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={12} sm={8}>
+                        <Typography fontWeight="bold" gutterBottom>
+                          Equipment
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {room.equipment.map((eq, index) => (
+                            <Chip key={index} label={eq} variant="outlined" size="small" />
+                          ))}
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              ))
+            ) : searched ? (
+              <Typography>No rooms available for the selected criteria</Typography>
+            ) : null}
           </Box>
-        ) : searched ? (
-          <Typography>No rooms available for the selected criteria</Typography>
-        ) : null}
-      </Box>
-    </LocalizationProvider>
+        </Box>
+      </LocalizationProvider>
+    </>
   );
 };
 

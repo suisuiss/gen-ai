@@ -34,7 +34,7 @@ roomSchema.pre('save', async function (next) {
         this.isModified('floor') ||
         this.isModified('status')) {
         let draft, result;
-        const maxAttempts = 5;
+        const maxAttempts = 3;
         let attempt = 0;
 
         do {
