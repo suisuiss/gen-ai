@@ -18,6 +18,7 @@ import format from 'date-fns/format';
 import Header from './Header';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import GroupIcon from '@mui/icons-material/Group';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'; // NEW IMPORT
 
 const inputHeight = { '& .MuiInputBase-root': { height: '56px' } };
 
@@ -178,7 +179,25 @@ const RoomSuggestions = () => {
             {loading ? (
               <Typography>Loading available rooms...</Typography>
             ) : conflict ? (
-              <Typography color="error">There is a conflict with previous bookings. Please select a different time slot.</Typography>
+              <Box
+                display="flex"
+                alignItems="center"
+                bgcolor="#fff3f3"
+                border="1px solid #f5c2c7"
+                borderRadius={2}
+                p={2}
+                my={2}
+              >
+                <ErrorOutlineIcon sx={{ color: '#d32f2f', fontSize: 32, mr: 2 }} />
+                <Box>
+                  <Typography color="error" fontWeight="bold">
+                    Oops! No rooms found.
+                  </Typography>
+                  <Typography color="error" variant="body2">
+                    Try adjusting the date, time, equipment, or capacity and search again.
+                  </Typography>
+                </Box>
+              </Box>
             ) : rooms.length > 0 ? (
               rooms.map((room) => (
                 <Card
@@ -239,3 +258,4 @@ const RoomSuggestions = () => {
 };
 
 export default RoomSuggestions;
+
