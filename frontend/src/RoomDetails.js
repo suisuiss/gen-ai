@@ -238,14 +238,7 @@ const RoomDetails = () => {
           <Typography variant="h5" align="center" gutterBottom sx={{ fontSize: '26px', fontFamily: 'Roboto, sans-serif', ml: 60, fontWeight: 'bold' }}>Room Details</Typography>
           {selectedRoom.photoURL && (
             <Paper sx={{ p: 6, borderRadius: 4, bgcolor: '#ffffff', width: '100%', maxWidth: 1200 }}>
-              <Box display="flex" justifyContent="center">
-                <Box
-                  component="img"
-                  src={selectedRoom.photoURL}
-                  alt={selectedRoom.roomName}
-                  sx={{ width: '100%', maxWidth: 1200, borderRadius: 4, mb: 2 }}
-                />
-              </Box>
+              
 
               {selectedRoom && (
                 <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} bgcolor="#e0e0e0" p={3} borderRadius={4}>
@@ -318,6 +311,16 @@ const RoomDetails = () => {
                   </LocalizationProvider>
                 </Box>
               )}
+
+             <Box display="flex" justifyContent="center">
+  <Box
+    component="img"
+    src={selectedRoom.photoURL}
+    alt={selectedRoom.roomName}
+    sx={{ width: '100%', maxWidth: 1200, borderRadius: 4, mb: 2 }}
+  />
+</Box>
+
             </Paper>
           )}
         </Box>
